@@ -1,10 +1,12 @@
 name: selection_mode
-description: "A new Flutter package project."
+description: "Multi-item selection with drag gestures and flexible behavior patterns for Flutter"
 version: 0.0.1
-homepage:
+homepage: https://github.com/khoadng/selection_mode
+repository: https://github.com/khoadng/selection_mode
+issue_tracker: https://github.com/khoadng/selection_mode/issues
 
 environment:
-  sdk: ^3.8.1
+  sdk: ">=3.0.0 <4.0.0"
   flutter: ">=1.17.0"
 
 dependencies:
@@ -12,4 +14,6 @@ dependencies:
     sdk: flutter
 
 dev_dependencies:
+  flutter_test:
+    sdk: flutter
   flutter_lints: ^5.0.0
