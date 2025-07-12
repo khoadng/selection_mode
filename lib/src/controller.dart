@@ -10,8 +10,8 @@ class SelectionModeController extends ChangeNotifier {
     bool initialEnabled = false,
     Set<int>? initialSelected,
     this.options = SelectionModeOptions.defaultOptions,
-  }) : _enabled = initialEnabled,
-       _selectedItems = Set<int>.from(initialSelected ?? <int>{});
+  })  : _enabled = initialEnabled,
+        _selectedItems = Set<int>.from(initialSelected ?? <int>{});
 
   SelectionModeOptions options;
   bool _enabled;
@@ -310,6 +310,10 @@ class SelectionModeController extends ChangeNotifier {
 
   void startRangeSelection(int index) {
     if (!isSelectable(index)) return;
+
+    if (_shouldBlockManualSelection()) {
+      return;
+    }
 
     if (!_enabled && _shouldAutoEnable()) {
       _setEnabled(true);

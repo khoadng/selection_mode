@@ -54,40 +54,42 @@ class _SelectableItemState extends State<SelectableItem>
 
   @override
   Widget build(BuildContext context) {
-    return SelectionBuilder(
+    return GestureDetector(
       onTap: widget.onTap,
-      index: widget.index,
-      builder: (context, isSelected) {
-        Widget child = SelectionListener(
-          controller: SelectionMode.of(context),
-          index: widget.index,
-          onSelectionChanged: (selected) {
-            if (selected && _kDefaultAnimationDuration != Duration.zero) {
-              _animationController.forward().then(
-                (value) => _animationController.reverse(),
-              );
-            }
-          },
-          child: Stack(
-            alignment: Alignment.bottomRight,
-            children: [
-              widget.itemBuilder(context, widget.index),
-              if (isSelected) const _SelectionIcon(),
-            ],
-          ),
-        );
+      child: SelectionBuilder(
+        index: widget.index,
+        builder: (context, isSelected) {
+          Widget child = SelectionListener(
+            controller: SelectionMode.of(context),
+            index: widget.index,
+            onSelectionChanged: (selected) {
+              if (selected && _kDefaultAnimationDuration != Duration.zero) {
+                _animationController.forward().then(
+                  (value) => _animationController.reverse(),
+                );
+              }
+            },
+            child: Stack(
+              alignment: Alignment.bottomRight,
+              children: [
+                widget.itemBuilder(context, widget.index),
+                if (isSelected) const _SelectionIcon(),
+              ],
+            ),
+          );
 
-        // Skip scale animation if animations are disabled
-        if (_kDefaultAnimationDuration == Duration.zero) {
-          return child;
-        }
+          // Skip scale animation if animations are disabled
+          if (_kDefaultAnimationDuration == Duration.zero) {
+            return child;
+          }
 
-        return AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, _) =>
-              Transform.scale(scale: _scaleAnimation.value, child: child),
-        );
-      },
+          return AnimatedBuilder(
+            animation: _animationController,
+            builder: (context, _) =>
+                Transform.scale(scale: _scaleAnimation.value, child: child),
+          );
+        },
+      ),
     );
   }
 }

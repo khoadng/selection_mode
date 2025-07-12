@@ -46,7 +46,6 @@ class AutoScrollConfig {
 class SelectionModeOptions {
   const SelectionModeOptions({
     this.hapticResolver,
-    this.enableLongPress = true,
     this.enableDragSelection = true,
     this.selectionBehavior = SelectionBehavior.autoEnable,
     this.maxSelections,
@@ -55,9 +54,6 @@ class SelectionModeOptions {
 
   /// Haptic feedback resolver. If null, no haptic feedback is provided.
   final HapticResolver? hapticResolver;
-
-  /// Enable long press to start selection mode
-  final bool enableLongPress;
 
   /// Enable drag to select multiple items (mobile)
   final bool enableDragSelection;
@@ -90,7 +86,6 @@ class SelectionModeOptions {
 
   SelectionModeOptions copyWith({
     HapticResolver? hapticResolver,
-    bool? enableLongPress,
     bool? enableDragSelection,
     SelectionBehavior? selectionBehavior,
     int? maxSelections,
@@ -98,7 +93,6 @@ class SelectionModeOptions {
   }) {
     return SelectionModeOptions(
       hapticResolver: hapticResolver ?? this.hapticResolver,
-      enableLongPress: enableLongPress ?? this.enableLongPress,
       enableDragSelection: enableDragSelection ?? this.enableDragSelection,
       selectionBehavior: selectionBehavior ?? this.selectionBehavior,
       maxSelections: maxSelections ?? this.maxSelections,

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:selection_mode/selection_mode.dart';
 
 /// A builder widget that provides selection state and gestures for an indexed item.
@@ -11,7 +10,6 @@ class SelectionBuilder extends StatefulWidget {
     this.controller,
     required this.index,
     required this.builder,
-    this.onTap,
     this.enableRangeSelection = true,
     this.isSelectable = true,
   });
@@ -27,9 +25,6 @@ class SelectionBuilder extends StatefulWidget {
     BuildContext context,
     bool isSelected,
   ) builder;
-
-  /// Callback for tap events
-  final VoidCallback? onTap;
 
   /// Whether range selection is enabled for this item
   final bool enableRangeSelection;
@@ -63,17 +58,6 @@ class _SelectionBuilderState extends State<SelectionBuilder> {
     }
   }
 
-  void _handleTap() {
-    final controller = SelectionMode.of(context);
-
-    if (HardwareKeyboard.instance.isShiftPressed &&
-        widget.enableRangeSelection) {
-      controller.handleSelection(widget.index, isShiftPressed: true);
-    } else {
-      widget.onTap?.call();
-    }
-  }
-
   Offset? _getGlobalPosition(BuildContext context) {
     // Get the center of the widget instead of top-left corner
     final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
@@ -94,28 +78,20 @@ class _SelectionBuilderState extends State<SelectionBuilder> {
   @override
   Widget build(BuildContext context) {
     final ctrl = widget.controller ?? SelectionMode.of(context);
-    final options = ctrl.options;
 
     return ListenableBuilder(
       listenable: ctrl,
       builder: (context, _) {
         final child = widget.builder(context, ctrl.isSelected(widget.index));
 
-        // If not selectable, only provide basic tap gesture
         if (!widget.isSelectable) {
-          return GestureDetector(
-            onTap: widget.onTap,
-            child: child,
-          );
+          return child;
         }
 
-        // Mobile with drag selection enabled
-        if (!options.enableLongPress) {
-          // Only tap gesture if long press is disabled
-          return GestureDetector(
-            onTap: _handleTap,
-            child: child,
-          );
+        // In manual mode when disabled, don't consume long press
+        if (ctrl.options.selectionBehavior == SelectionBehavior.manual &&
+            !ctrl.enabled) {
+          return child;
         }
 
         return DragTarget<int>(
@@ -144,13 +120,7 @@ class _SelectionBuilderState extends State<SelectionBuilder> {
               },
               feedback: const SizedBox.shrink(),
               childWhenDragging: child,
-              child: GestureDetector(
-                onTap: _handleTap,
-                child: ListenableBuilder(
-                  listenable: ctrl,
-                  builder: (context, _) => child,
-                ),
-              ),
+              child: child,
             );
           },
         );

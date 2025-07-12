@@ -9,7 +9,12 @@ class BasicListDemo extends StatefulWidget {
 }
 
 class _BasicListDemoState extends State<BasicListDemo> {
-  final _controller = SelectionModeController();
+  final _controller = SelectionModeController(
+    options: const SelectionModeOptions(
+      enableDragSelection: false,
+      selectionBehavior: SelectionBehavior.manual,
+    ),
+  );
   final _items = List.generate(50, (index) => 'Item ${index + 1}');
   final _scrollController = ScrollController();
 
@@ -42,8 +47,28 @@ class _BasicListDemoState extends State<BasicListDemo> {
               tooltip: 'Copy selected',
               onPressed: () => _copySelected(),
             ),
+            IconButton(
+              icon: const Icon(Icons.done),
+              tooltip: 'Done',
+              onPressed: () => _controller.disable(),
+            ),
           ],
-          child: AppBar(title: const Text('Basic Selection')),
+          child: AppBar(
+            title: const Text('Basic Selection'),
+            actions: [
+              // Button to enable/disable selection mode
+              TextButton(
+                child: Text('Enable Selection'),
+                onPressed: () {
+                  if (_controller.enabled) {
+                    _controller.disable();
+                  } else {
+                    _controller.enable();
+                  }
+                },
+              ),
+            ],
+          ),
         ),
         body: ListView.builder(
           controller: _scrollController,
@@ -99,10 +124,39 @@ class SelectableListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SelectionBuilder(
-      onTap: onTap,
       index: index,
       builder: (context, isSelected) {
+        final inSelectionMode = SelectionMode.of(context).enabled;
         return ListTile(
+          onTap: onTap,
+          onLongPress: () {
+            if (inSelectionMode) {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text('Selected: $title'),
+                  content: const Text('You can now select more items.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              showModalBottomSheet(
+                context: context,
+                builder: (context) => Container(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ListTile(
+                    title: Text('Long pressed on $title'),
+                    onTap: () => Navigator.pop(context),
+                  ),
+                ),
+              );
+            }
+          },
           leading: _buildAvatar(context, isSelected),
           title: Text(title),
           subtitle: subtitle != null ? Text(subtitle!) : null,

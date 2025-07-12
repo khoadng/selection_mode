@@ -5,7 +5,7 @@ A powerful Flutter package for multi-item selection with drag gestures, range se
 ## Features
 
 - **Drag selection** - Touch and drag to select multiple items
-- **Range selection** - Shift+click for desktop, long-press+drag for mobile  
+- **Range selection** - Long-press+drag to select a range of items
 - **Auto-scroll** - Smooth scrolling during drag selection
 - **Flexible behaviors** - Auto-enable, manual control, or implicit mode
 - **Built-in widgets** - Selection app bar, footer, and item builders
@@ -87,7 +87,6 @@ SelectionModeController(
     hapticResolver: HapticFeedbackResolver.all,         // Haptic feedback for all events
     maxSelections: 5,                                   // Limit selection count
     enableDragSelection: true,                          // Touch drag to select
-    enableLongPress: true,                              // Long press to start
     selectionBehavior: SelectionBehavior.autoEnable,    // Auto-enable mode
     hapticResolver: HapticFeedbackResolver.all,         // Haptic feedback
     autoScroll: AutoScrollConfig(

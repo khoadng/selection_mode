@@ -113,24 +113,26 @@ class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
   }
 
   Widget _buildItemWidget(ListItem item, int index) {
-    return SelectionBuilder(
-      index: index,
-      isSelectable: item.isSelectable,
+    return GestureDetector(
       onTap: () => _handleItemTap(index),
-      builder: (context, isSelected) => switch (item.runtimeType) {
-        const (HeaderItem) => _HeaderWidget(
-          header: item as HeaderItem,
-          controller: _controller,
-          onSectionToggle: () => _toggleSection(index),
-          sectionState: _getSectionState(index),
-        ),
-        const (ContactItem) => _ContactWidget(
-          contact: item as ContactItem,
-          isSelected: isSelected,
-        ),
-        const (SeparatorItem) => const _SeparatorWidget(),
-        _ => const SizedBox.shrink(),
-      },
+      child: SelectionBuilder(
+        index: index,
+        isSelectable: item.isSelectable,
+        builder: (context, isSelected) => switch (item.runtimeType) {
+          const (HeaderItem) => _HeaderWidget(
+            header: item as HeaderItem,
+            controller: _controller,
+            onSectionToggle: () => _toggleSection(index),
+            sectionState: _getSectionState(index),
+          ),
+          const (ContactItem) => _ContactWidget(
+            contact: item as ContactItem,
+            isSelected: isSelected,
+          ),
+          const (SeparatorItem) => const _SeparatorWidget(),
+          _ => const SizedBox.shrink(),
+        },
+      ),
     );
   }
 
