@@ -79,14 +79,6 @@ class _PhotoGridState extends State<PhotoGrid> {
 }
 ```
 
-## Core Widgets
-
-```dart
-SelectionMode()          // Provides selection context
-SelectionBuilder()       // Wraps any widget to make it selectable  
-SelectionAppBar()        // App bar that shows selection state
-```
-
 ## Configuration
 
 ```dart
@@ -124,6 +116,3 @@ SelectionModeOptions.implicit    // Auto enable + auto exit when empty
 
 See `/example` folder for complete implementations.
 
-## License
-
-MIT
