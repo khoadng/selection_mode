@@ -26,8 +26,7 @@ class SelectionBuilder extends StatefulWidget {
   final Widget Function(
     BuildContext context,
     bool isSelected,
-  )
-  builder;
+  ) builder;
 
   /// Callback for tap events
   final VoidCallback? onTap;
@@ -147,7 +146,10 @@ class _SelectionBuilderState extends State<SelectionBuilder> {
               childWhenDragging: child,
               child: GestureDetector(
                 onTap: _handleTap,
-                child: child,
+                child: ListenableBuilder(
+                  listenable: ctrl,
+                  builder: (context, _) => child,
+                ),
               ),
             );
           },
