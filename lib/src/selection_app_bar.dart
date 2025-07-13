@@ -23,8 +23,7 @@ class SelectionAppBarBuilder extends StatelessWidget
     BuildContext context,
     SelectionModeController controller,
     bool isSelectionMode,
-  )
-  builder;
+  ) builder;
 
   /// The preferred size for this app bar
   @override
@@ -36,7 +35,7 @@ class SelectionAppBarBuilder extends StatelessWidget
 
     return ListenableBuilder(
       listenable: ctrl,
-      builder: (context, _) => builder(context, ctrl, ctrl.enabled),
+      builder: (context, _) => builder(context, ctrl, ctrl.isActive),
     );
   }
 }
@@ -68,7 +67,7 @@ class MaterialSelectionAppBar extends StatelessWidget
 
   /// Custom title builder for selection mode. Defaults to "${count} selected"
   final Widget Function(BuildContext context, int selectedCount)?
-  selectionTitle;
+      selectionTitle;
 
   /// Actions to show in selection mode
   final List<Widget>? actions;
@@ -95,7 +94,7 @@ class MaterialSelectionAppBar extends StatelessWidget
     return ListenableBuilder(
       listenable: ctrl,
       builder: (context, _) =>
-          ctrl.enabled ? _buildSelectionAppBar(context, ctrl) : child,
+          ctrl.isActive ? _buildSelectionAppBar(context, ctrl) : child,
     );
   }
 
@@ -107,8 +106,7 @@ class MaterialSelectionAppBar extends StatelessWidget
     final colorScheme = theme.colorScheme;
 
     return AppBar(
-      title:
-          selectionTitle?.call(context, ctrl.selectedCount) ??
+      title: selectionTitle?.call(context, ctrl.selectedCount) ??
           Text('${ctrl.selectedCount} selected'),
       leading: IconButton(
         icon: const Icon(Icons.close),

@@ -15,31 +15,31 @@ void main() {
     });
 
     test('initial state is correct', () {
-      expect(controller.enabled, isFalse);
-      expect(controller.selectedItems, isEmpty);
+      expect(controller.isActive, isFalse);
+      expect(controller.selection, isEmpty);
       expect(controller.selectedCount, equals(0));
       expect(controller.hasSelection, isFalse);
     });
 
     test('enable/disable controls state and selection', () {
       controller.enable();
-      expect(controller.enabled, isTrue);
+      expect(controller.isActive, isTrue);
 
-      controller.toggleSelection(0);
+      controller.toggleItem(0);
       controller.disable();
 
-      expect(controller.enabled, isFalse);
-      expect(controller.selectedItems, isEmpty);
+      expect(controller.isActive, isFalse);
+      expect(controller.selection, isEmpty);
     });
 
     test('toggleSelection adds and removes items', () {
       controller.enable();
 
-      controller.toggleSelection(0);
+      controller.toggleItem(0);
       expect(controller.isSelected(0), isTrue);
       expect(controller.selectedCount, equals(1));
 
-      controller.toggleSelection(0);
+      controller.toggleItem(0);
       expect(controller.isSelected(0), isFalse);
       expect(controller.selectedCount, equals(0));
     });
@@ -49,7 +49,7 @@ void main() {
       controller.addListener(() => notificationCount++);
 
       controller.enable();
-      controller.toggleSelection(0);
+      controller.toggleItem(0);
       controller.disable();
 
       expect(notificationCount, equals(3));

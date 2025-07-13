@@ -44,7 +44,7 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
               icon: const Icon(Icons.select_all),
               tooltip: 'Select All',
               onPressed: () {
-                if (_controller.enabled) {
+                if (_controller.isActive) {
                   _controller.selectAll(
                     List.generate(_photos.length, (i) => i),
                   );
@@ -55,8 +55,8 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
               icon: const Icon(Icons.remove),
               tooltip: 'Clear Selection',
               onPressed: () {
-                if (_controller.enabled) {
-                  _controller.clearSelected();
+                if (_controller.isActive) {
+                  _controller.deselectAll();
                 }
               },
             ),
@@ -136,15 +136,15 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
   }
 
   void _handlePhotoTap(int index) {
-    if (_controller.enabled) {
-      _controller.toggleSelection(index);
+    if (_controller.isActive) {
+      _controller.toggleItem(index);
     } else {
       print('Opening photo: ${_photos[index].title}');
     }
   }
 
   void _shareSelected() {
-    final selectedItems = _controller.selectedItemsList
+    final selectedItems = _controller.selection
         .map((index) => _photos[index].title)
         .join(', ');
     print('Sharing: $selectedItems');
@@ -179,7 +179,7 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
   }
 
   void _performDelete() {
-    final selected = _controller.selectedItemsList;
+    final selected = _controller.selection.toList();
     selected.sort((a, b) => b.compareTo(a));
     for (final index in selected) {
       _photos.removeAt(index);
@@ -245,7 +245,7 @@ class _SelectionAwareBottomNav extends StatelessWidget {
     return ListenableBuilder(
       listenable: ctrl,
       builder: (context, _) {
-        final isHidden = ctrl.enabled;
+        final isHidden = ctrl.isActive;
 
         return isHidden ? const SizedBox.shrink() : _buildNav();
       },

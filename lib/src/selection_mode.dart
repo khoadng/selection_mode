@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
 import 'controller.dart';
 import 'auto_scroll_manager.dart';
-import 'selection_mode_options.dart';
+import 'selection_options.dart';
 
 class SelectionMode extends StatefulWidget {
   const SelectionMode({
     super.key,
     this.controller,
-    this.onEnabledChanged,
+    this.onModeChanged,
+    this.onChanged,
     this.scrollController,
     required this.child,
   });
 
   final SelectionModeController? controller;
   final ScrollController? scrollController;
-  final void Function(bool enabled)? onEnabledChanged;
+  final void Function(bool value)? onModeChanged;
+  final void Function(Set<int> selection)? onChanged;
   final Widget child;
 
   /// Access the selection controller from the widget tree
   static SelectionModeController of(BuildContext context) {
-    final scope = context
-        .dependOnInheritedWidgetOfExactType<_SelectionModeScope>();
+    final scope =
+        context.dependOnInheritedWidgetOfExactType<_SelectionModeScope>();
     if (scope == null) {
       throw FlutterError(
         'SelectionMode.of() called with a context that does not contain a SelectionMode.',
@@ -31,8 +33,8 @@ class SelectionMode extends StatefulWidget {
 
   /// Access the selection controller from the widget tree (nullable)
   static SelectionModeController? maybeOf(BuildContext context) {
-    final scope = context
-        .dependOnInheritedWidgetOfExactType<_SelectionModeScope>();
+    final scope =
+        context.dependOnInheritedWidgetOfExactType<_SelectionModeScope>();
     return scope?.controller;
   }
 
@@ -42,14 +44,18 @@ class SelectionMode extends StatefulWidget {
 
 class _SelectionModeState extends State<SelectionMode> {
   late SelectionModeController _controller;
-  late bool _previousEnabled;
+  late bool _previousActive;
+  Set<int> _previousSelection = {};
   AutoScrollManager? _autoScrollManager;
+  late final ValueNotifier<bool> _enable;
 
   @override
   void initState() {
     super.initState();
     _controller = widget.controller ?? SelectionModeController();
-    _previousEnabled = _controller.enabled;
+    _enable = ValueNotifier(_controller.isActive);
+    _previousActive = _controller.isActive;
+    _previousSelection = Set.from(_controller.selection);
     _controller.addListener(_onControllerChanged);
   }
 
@@ -65,6 +71,9 @@ class _SelectionModeState extends State<SelectionMode> {
     if (widget.controller != oldWidget.controller) {
       _controller.removeListener(_onControllerChanged);
       _controller = widget.controller ?? SelectionModeController();
+      _enable.value = _controller.isActive;
+      _previousActive = _controller.isActive;
+      _previousSelection = Set.from(_controller.selection);
       _controller.addListener(_onControllerChanged);
       _setupAutoScroll();
     }
@@ -100,28 +109,38 @@ class _SelectionModeState extends State<SelectionMode> {
   }
 
   void _onControllerChanged() {
-    final currentEnabled = _controller.enabled;
+    final currentEnabled = _controller.isActive;
+    final currentSelection = _controller.selection;
+    _enable.value = currentEnabled;
 
-    if (_previousEnabled != currentEnabled) {
-      widget.onEnabledChanged?.call(currentEnabled);
-      _previousEnabled = currentEnabled;
+    // Check for enabled state changes
+    if (_previousActive != currentEnabled) {
+      widget.onModeChanged?.call(currentEnabled);
+      _previousActive = currentEnabled;
     }
 
-    setState(() {});
+    // Check for selection changes - only call when selection actually changed
+    if (_previousSelection != currentSelection) {
+      widget.onChanged?.call(Set.from(currentSelection));
+      _previousSelection = Set.from(currentSelection);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return _SelectionModeScope(
       controller: _controller,
-      child: PopScope(
-        canPop: !_controller.enabled,
-        onPopInvokedWithResult: (didPop, result) {
-          if (!didPop && _controller.enabled) {
-            _controller.disable();
-          }
-        },
-        child: widget.child,
+      child: ValueListenableBuilder(
+        valueListenable: _enable,
+        builder: (context, enabled, child) => PopScope(
+          canPop: !enabled,
+          onPopInvokedWithResult: (didPop, result) {
+            if (!didPop && enabled) {
+              _controller.disable();
+            }
+          },
+          child: widget.child,
+        ),
       ),
     );
   }

@@ -1,6 +1,6 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'selection_mode_options.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart';
+import 'selection_options.dart';
 
 enum ScrollDirection { up, down, none }
 
@@ -14,7 +14,7 @@ class AutoScrollManager {
   final ScrollController scrollController;
   final AutoScrollConfig config;
 
-  Timer? _scrollTimer;
+  Ticker? _ticker;
   ScrollDirection _currentDirection = ScrollDirection.none;
   double _currentSpeed = 0.0;
 
@@ -46,8 +46,8 @@ class AutoScrollManager {
 
   /// Stop auto-scrolling
   void stopAutoScroll() {
-    _scrollTimer?.cancel();
-    _scrollTimer = null;
+    _ticker?.dispose();
+    _ticker = null;
     _currentDirection = ScrollDirection.none;
     _currentSpeed = 0.0;
   }
@@ -65,10 +65,8 @@ class AutoScrollManager {
     _currentDirection = direction;
     _currentSpeed = speed;
 
-    _scrollTimer?.cancel();
-    _scrollTimer = Timer.periodic(config.scrollInterval, (_) {
-      _performScroll();
-    });
+    _ticker?.dispose();
+    _ticker = Ticker((_) => _performScroll())..start();
   }
 
   void _performScroll() {
@@ -81,19 +79,20 @@ class AutoScrollManager {
       return; // No scrolling needed
     }
 
+    final increment = _currentSpeed / 60; // Per-frame increment at 60fps
     final currentOffset = scrollController.offset;
     final maxOffset = scrollController.position.maxScrollExtent;
     final minOffset = scrollController.position.minScrollExtent;
 
     final newOffset = switch (_currentDirection) {
-      ScrollDirection.up => (currentOffset - _currentSpeed).clamp(
-        minOffset,
-        maxOffset,
-      ),
-      ScrollDirection.down => (currentOffset + _currentSpeed).clamp(
-        minOffset,
-        maxOffset,
-      ),
+      ScrollDirection.up => (currentOffset - increment).clamp(
+          minOffset,
+          maxOffset,
+        ),
+      ScrollDirection.down => (currentOffset + increment).clamp(
+          minOffset,
+          maxOffset,
+        ),
       ScrollDirection.none => currentOffset,
     };
 
@@ -107,13 +106,13 @@ class AutoScrollManager {
   ScrollDirection _calculateScrollDirection(
     Offset globalPosition,
     Size viewportSize,
-  ) => switch (globalPosition.dy) {
-    double y when y <= config.edgeThreshold => ScrollDirection.up,
-    double y when y >= viewportSize.height - config.edgeThreshold =>
-      ScrollDirection.down,
-
-    double() => ScrollDirection.none,
-  };
+  ) =>
+      switch (globalPosition.dy) {
+        double y when y <= config.edgeThreshold => ScrollDirection.up,
+        double y when y >= viewportSize.height - config.edgeThreshold =>
+          ScrollDirection.down,
+        double() => ScrollDirection.none,
+      };
 
   double _calculateScrollSpeed(
     Offset globalPosition,
@@ -131,8 +130,7 @@ class AutoScrollManager {
     }
 
     // Calculate speed based on proximity to edge (closer = faster)
-    final proximity =
-        (config.edgeThreshold -
+    final proximity = (config.edgeThreshold -
             distanceFromEdge.clamp(0, config.edgeThreshold)) /
         config.edgeThreshold;
     final speed = config.scrollSpeed * proximity.clamp(0.1, 1.0);

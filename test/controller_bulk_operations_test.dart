@@ -15,13 +15,13 @@ void main() {
       controller.dispose();
     });
 
-    test('clearSelected removes all selections', () {
+    test('deselectAll removes all selections', () {
       controller.enable();
       controller.selectRange(0, 5);
 
-      controller.clearSelected();
+      controller.deselectAll();
 
-      expect(controller.selectedItems, isEmpty);
+      expect(controller.selection, isEmpty);
     });
 
     test('selectAll selects provided items', () {
@@ -29,17 +29,17 @@ void main() {
 
       controller.selectAll([1, 3, 5, 7]);
 
-      expect(controller.selectedItems, equals({1, 3, 5, 7}));
+      expect(controller.selection, equals({1, 3, 5, 7}));
     });
 
     test('invertSelection inverts selection', () {
       controller.enable();
-      controller.toggleSelection(1);
-      controller.toggleSelection(3);
+      controller.toggleItem(1);
+      controller.toggleItem(3);
 
       controller.invertSelection([0, 1, 2, 3, 4]);
 
-      expect(controller.selectedItems, equals({0, 2, 4}));
+      expect(controller.selection, equals({0, 2, 4}));
     });
   });
 }

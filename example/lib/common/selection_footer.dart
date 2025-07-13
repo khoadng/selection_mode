@@ -23,11 +23,11 @@ class SelectionFooter extends StatelessWidget {
       listenable: ctrl,
       builder: (context, _) {
         if (!animated) {
-          return ctrl.enabled ? child : const SizedBox.shrink();
+          return ctrl.isActive ? child : const SizedBox.shrink();
         }
 
         return _AnimatedFooter(
-          enabled: ctrl.enabled,
+          enabled: ctrl.isActive,
           duration: _kDefaultAnimationDuration,
           curve: Curves.easeInOut,
           child: child,

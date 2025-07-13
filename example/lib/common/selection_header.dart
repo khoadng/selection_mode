@@ -14,7 +14,7 @@ class SelectionHeader extends StatelessWidget {
     return ListenableBuilder(
       listenable: ctrl,
       builder: (context, _) {
-        if (!ctrl.enabled) return const SizedBox.shrink();
+        if (!ctrl.isActive) return const SizedBox.shrink();
 
         return SizedBox(height: kToolbarHeight, child: child);
       },

@@ -8,15 +8,17 @@ void main() {
     group('Max Selections', () {
       test('respects max selections limit', () {
         final controller = SelectionModeController(
-          options: const SelectionModeOptions(maxSelections: 2),
+          options: const SelectionOptions(
+            constraints: SelectionConstraints(maxSelections: 2),
+          ),
         );
         controller.enable();
 
-        controller.toggleSelection(0);
-        controller.toggleSelection(1);
-        controller.toggleSelection(2);
+        controller.toggleItem(0);
+        controller.toggleItem(1);
+        controller.toggleItem(2);
 
-        expect(controller.selectedItems, equals({0, 1}));
+        expect(controller.selection, equals({0, 1}));
         expect(controller.selectedCount, equals(2));
 
         controller.dispose();
@@ -25,12 +27,14 @@ void main() {
       test('updating options enforces new max selections', () {
         final controller = SelectionModeController();
         controller.enable();
-        controller.toggleSelection(0);
-        controller.toggleSelection(1);
-        controller.toggleSelection(2);
+        controller.toggleItem(0);
+        controller.toggleItem(1);
+        controller.toggleItem(2);
 
         controller.updateOptions(
-          const SelectionModeOptions(maxSelections: 2),
+          const SelectionOptions(
+            constraints: SelectionConstraints(maxSelections: 2),
+          ),
         );
 
         expect(controller.selectedCount, equals(2));
@@ -45,7 +49,7 @@ void main() {
         controller.enable();
         controller.setItemSelectable(0, false);
 
-        controller.toggleSelection(0);
+        controller.toggleItem(0);
 
         expect(controller.isSelected(0), isFalse);
 
@@ -55,7 +59,7 @@ void main() {
       test('making selected item unselectable removes it', () {
         final controller = SelectionModeController();
         controller.enable();
-        controller.toggleSelection(0);
+        controller.toggleItem(0);
 
         controller.setItemSelectable(0, false);
 
@@ -72,7 +76,7 @@ void main() {
 
         controller.selectRange(1, 5);
 
-        expect(controller.selectedItems, equals({1, 3, 5}));
+        expect(controller.selection, equals({1, 3, 5}));
 
         controller.dispose();
       });

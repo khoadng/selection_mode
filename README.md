@@ -1,6 +1,6 @@
 # Selection Mode
 
-A powerful Flutter package for multi-item selection with drag gestures, range selection, and flexible behavior patterns.
+A Flutter package for multi-item selection with drag gestures, range selection, and flexible behavior patterns.
 
 ## Features
 
@@ -8,8 +8,6 @@ A powerful Flutter package for multi-item selection with drag gestures, range se
 - **Range selection** - Long-press+drag to select a range of items
 - **Auto-scroll** - Smooth scrolling during drag selection
 - **Flexible behaviors** - Auto-enable, manual control, or implicit mode
-- **Built-in widgets** - Selection app bar, footer, and item builders
-- **Platform adaptive** - Works great on mobile and desktop
 
 ## Quick Start
 
@@ -55,7 +53,6 @@ class _PhotoGridState extends State<PhotoGrid> {
           controller: _scrollController, // Attach scroll controller for auto-scroll when dragging
           itemBuilder: (context, index) => SelectionBuilder(
             index: index,
-            enableRangeSelection: true,             // Enable range selection
             isSelectable: index != 0,               // Example: first item not selectable
             onTap: () => _handleTap(index),
             builder: (context, isSelected) => PhotoTile(
@@ -69,8 +66,8 @@ class _PhotoGridState extends State<PhotoGrid> {
   }
 
   void _handleTap(int index) {
-    if (_controller.enabled) {
-      _controller.toggleSelection(index);
+    if (_controller.isActive) {
+      _controller.toggleItem(index);
     } else {
       // Normal tap behavior
       openPhoto(index);
@@ -83,16 +80,15 @@ class _PhotoGridState extends State<PhotoGrid> {
 
 ```dart
 SelectionModeController(
-  options: SelectionModeOptions(
-    hapticResolver: HapticFeedbackResolver.all,         // Haptic feedback for all events
-    maxSelections: 5,                                   // Limit selection count
-    enableDragSelection: true,                          // Touch drag to select
-    selectionBehavior: SelectionBehavior.autoEnable,    // Auto-enable mode
-    hapticResolver: HapticFeedbackResolver.all,         // Haptic feedback
+  options: SelectionOptions(
+    haptics: HapticFeedbackResolver.all,                // Haptic feedback for all events
+    constraints: const SelectionConstraints(
+      maxSelections: 10,                                // Maximum items to select
+    ),
+    behavior: SelectionBehavior.manual,        // Explicit manual control
     autoScroll: AutoScrollConfig(
-      edgeThreshold: 80.0,                              // Distance from edge to trigger
-      scrollSpeed: 20.0,                                // Scroll speed in pixels
-      scrollInterval: Duration(milliseconds: 16),       // Scroll frequency
+      edgeThreshold: 80,                                // Distance from edge to trigger
+      scrollSpeed: 900,                                 // Scroll speed in pixels per second
     ),
   ),
 );

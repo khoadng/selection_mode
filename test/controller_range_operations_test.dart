@@ -21,7 +21,7 @@ void main() {
 
         controller.selectRange(2, 5);
 
-        expect(controller.selectedItems, equals({2, 3, 4, 5}));
+        expect(controller.selection, equals({2, 3, 4, 5}));
       });
 
       test('deselectRange removes items in range', () {
@@ -30,17 +30,17 @@ void main() {
 
         controller.deselectRange(3, 7);
 
-        expect(controller.selectedItems, equals({0, 1, 2, 8, 9, 10}));
+        expect(controller.selection, equals({0, 1, 2, 8, 9, 10}));
       });
 
       test('toggleRange toggles items in range', () {
         controller.enable();
-        controller.toggleSelection(1);
-        controller.toggleSelection(3);
+        controller.toggleItem(1);
+        controller.toggleItem(3);
 
         controller.toggleRange(0, 4);
 
-        expect(controller.selectedItems, equals({0, 2, 4}));
+        expect(controller.selection, equals({0, 2, 4}));
       });
 
       test('range queries work correctly', () {
@@ -61,7 +61,7 @@ void main() {
 
         controller.handleSelection(5, isShiftPressed: true);
 
-        expect(controller.selectedItems, equals({2, 3, 4, 5}));
+        expect(controller.selection, equals({2, 3, 4, 5}));
       });
 
       test('setRangeAnchor sets anchor and selects item', () {

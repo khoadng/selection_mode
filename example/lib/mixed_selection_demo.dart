@@ -12,9 +12,9 @@ class MixedSelectionDemo extends StatefulWidget {
 
 class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
   final _controller = SelectionModeController(
-    options: SelectionModeOptions(
-      maxSelections: 5,
-      selectionBehavior: SelectionBehavior.implicit,
+    options: SelectionOptions(
+      constraints: SelectionConstraints(maxSelections: 5),
+      behavior: SelectionBehavior.autoToggle,
     ),
   );
   final _items = _generateMixedItems();
@@ -228,21 +228,21 @@ class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
       // With implicit behavior: first tap enables mode and selects item
       // Subsequent taps toggle selection
       // When last item is deselected, mode auto-exits
-      _controller.toggleSelection(index);
+      _controller.toggleItem(index);
     } else if (item is ContactItem) {
       print('Opening contact: ${item.name}');
     }
   }
 
   void _emailContacts() {
-    final selectedContacts = _controller.selectedItemsList
+    final selectedContacts = _controller.selection
         .map((index) => _items[index])
         .whereType<ContactItem>()
         .map((contact) => contact.email)
         .join(', ');
     print('Emailing: $selectedContacts');
     // Note: Mode will auto-exit after clearing selection
-    _controller.clearSelected();
+    _controller.deselectAll();
   }
 
   void _deleteContacts() {
@@ -269,13 +269,13 @@ class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
   }
 
   void _performDelete() {
-    final selected = _controller.selectedItemsList;
+    final selected = _controller.selection.toList();
     selected.sort((a, b) => b.compareTo(a));
     for (final index in selected) {
       _items.removeAt(index);
     }
     // Note: Mode will auto-exit after clearing selection
-    _controller.clearSelected();
+    _controller.deselectAll();
     setState(() {});
   }
 
@@ -321,7 +321,7 @@ class _BehaviorIndicator extends StatelessWidget {
     return ListenableBuilder(
       listenable: controller,
       builder: (context, child) {
-        final isEnabled = controller.enabled;
+        final isEnabled = controller.isActive;
         final hasSelection = controller.hasSelection;
 
         return Container(

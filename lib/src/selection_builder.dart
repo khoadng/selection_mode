@@ -10,7 +10,6 @@ class SelectionBuilder extends StatefulWidget {
     this.controller,
     required this.index,
     required this.builder,
-    this.enableRangeSelection = true,
     this.isSelectable = true,
   });
 
@@ -25,9 +24,6 @@ class SelectionBuilder extends StatefulWidget {
     BuildContext context,
     bool isSelected,
   ) builder;
-
-  /// Whether range selection is enabled for this item
-  final bool enableRangeSelection;
 
   /// Whether this item can be selected
   final bool isSelectable;
@@ -60,7 +56,7 @@ class _SelectionBuilderState extends State<SelectionBuilder> {
 
   Offset? _getGlobalPosition(BuildContext context) {
     // Get the center of the widget instead of top-left corner
-    final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
+    final renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null) return null;
     final size = renderBox.size;
     return renderBox.localToGlobal(Offset(size.width / 2, size.height / 2));
@@ -70,33 +66,32 @@ class _SelectionBuilderState extends State<SelectionBuilder> {
     final scrollable = Scrollable.maybeOf(context);
     if (scrollable == null) return null;
 
-    final RenderBox? renderBox =
-        scrollable.context.findRenderObject() as RenderBox?;
+    final renderBox = scrollable.context.findRenderObject() as RenderBox?;
     return renderBox?.size;
   }
 
   @override
   Widget build(BuildContext context) {
-    final ctrl = widget.controller ?? SelectionMode.of(context);
+    final controller = widget.controller ?? SelectionMode.of(context);
 
     return ListenableBuilder(
-      listenable: ctrl,
+      listenable: controller,
       builder: (context, _) {
-        final child = widget.builder(context, ctrl.isSelected(widget.index));
+        final child =
+            widget.builder(context, controller.isSelected(widget.index));
 
         if (!widget.isSelectable) {
           return child;
         }
 
         // In manual mode when disabled, don't consume long press
-        if (ctrl.options.selectionBehavior == SelectionBehavior.manual &&
-            !ctrl.enabled) {
+        if (controller.options.behavior == SelectionBehavior.manual &&
+            !controller.isActive) {
           return child;
         }
 
         return DragTarget<int>(
           onWillAcceptWithDetails: (data) {
-            final controller = SelectionMode.of(context);
             final globalPosition = _getGlobalPosition(context);
             final viewportSize = _getViewportSize(context);
 
@@ -111,11 +106,13 @@ class _SelectionBuilderState extends State<SelectionBuilder> {
             return LongPressDraggable<int>(
               data: widget.index,
               onDragStarted: () {
-                final controller = SelectionMode.of(context);
                 controller.startRangeSelection(widget.index);
               },
               onDragEnd: (_) {
                 final controller = SelectionMode.of(context);
+                controller.endRangeSelection();
+              },
+              onDraggableCanceled: (_, __) {
                 controller.endRangeSelection();
               },
               feedback: const SizedBox.shrink(),

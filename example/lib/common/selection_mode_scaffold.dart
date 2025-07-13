@@ -23,7 +23,7 @@ class SelectionModeScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return SelectionMode(
       controller: controller,
-      onEnabledChanged: onEnabledChanged,
+      onModeChanged: onEnabledChanged,
       child: Stack(
         children: [
           Column(

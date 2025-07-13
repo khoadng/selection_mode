@@ -22,7 +22,7 @@ void main() {
       expect(controller.isDragInProgress, isTrue);
 
       controller.handleDragOver(3);
-      expect(controller.selectedItems, equals({0, 1, 2, 3}));
+      expect(controller.selection, equals({0, 1, 2, 3}));
 
       controller.endRangeSelection();
       expect(controller.isDragInProgress, isFalse);
@@ -30,12 +30,12 @@ void main() {
 
     test('drag preserves pre-drag selections', () {
       controller.enable();
-      controller.toggleSelection(5);
+      controller.toggleItem(5);
 
       controller.startRangeSelection(0);
       controller.handleDragOver(2);
 
-      expect(controller.selectedItems, equals({0, 1, 2, 5}));
+      expect(controller.selection, equals({0, 1, 2, 5}));
     });
   });
 }

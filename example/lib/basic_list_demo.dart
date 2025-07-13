@@ -10,10 +10,7 @@ class BasicListDemo extends StatefulWidget {
 
 class _BasicListDemoState extends State<BasicListDemo> {
   final _controller = SelectionModeController(
-    options: const SelectionModeOptions(
-      enableDragSelection: false,
-      selectionBehavior: SelectionBehavior.manual,
-    ),
+    options: const SelectionOptions(behavior: SelectionBehavior.manual),
   );
   final _items = List.generate(50, (index) => 'Item ${index + 1}');
   final _scrollController = ScrollController();
@@ -30,8 +27,11 @@ class _BasicListDemoState extends State<BasicListDemo> {
     return SelectionMode(
       scrollController: _scrollController,
       controller: _controller,
-      onEnabledChanged: (enabled) {
+      onModeChanged: (enabled) {
         print('Selection mode: $enabled');
+      },
+      onChanged: (selectedItems) {
+        print('Selected items: $selectedItems');
       },
       child: Scaffold(
         appBar: MaterialSelectionAppBar(
@@ -60,7 +60,7 @@ class _BasicListDemoState extends State<BasicListDemo> {
               TextButton(
                 child: Text('Enable Selection'),
                 onPressed: () {
-                  if (_controller.enabled) {
+                  if (_controller.isActive) {
                     _controller.disable();
                   } else {
                     _controller.enable();
@@ -86,8 +86,8 @@ class _BasicListDemoState extends State<BasicListDemo> {
   }
 
   void _handleItemTap(int index) {
-    if (_controller.enabled) {
-      _controller.toggleSelection(index);
+    if (_controller.isActive) {
+      _controller.toggleItem(index);
     } else {
       // Handle normal tap
       print('Tapped: ${_items[index]}');
@@ -95,7 +95,7 @@ class _BasicListDemoState extends State<BasicListDemo> {
   }
 
   void _shareSelected() {
-    final selectedItems = _controller.selectedItemsList
+    final selectedItems = _controller.selection
         .map((index) => _items[index])
         .join(', ');
     print('Sharing: $selectedItems');
@@ -126,7 +126,7 @@ class SelectableListTile extends StatelessWidget {
     return SelectionBuilder(
       index: index,
       builder: (context, isSelected) {
-        final inSelectionMode = SelectionMode.of(context).enabled;
+        final inSelectionMode = SelectionMode.of(context).isActive;
         return ListTile(
           onTap: onTap,
           onLongPress: () {
