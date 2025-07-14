@@ -166,15 +166,7 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
   }
 
   void _showSelectedDialog() {
-    final visiblePhotos = _visiblePhotos;
-    final selectedPhotos = <Photo>[];
-
-    // Get selected photos by checking each visible photo's selection status
-    for (int i = 0; i < visiblePhotos.length; i++) {
-      if (_controller.isSelected(i)) {
-        selectedPhotos.add(visiblePhotos[i]);
-      }
-    }
+    final selectedPhotos = _controller.selectedFrom(_visiblePhotos).toList();
 
     showDialog(
       context: context,
@@ -227,27 +219,16 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
   }
 
   void _shareSelected() {
-    final visiblePhotos = _visiblePhotos;
-    final selectedTitles = <String>[];
-
-    for (int i = 0; i < visiblePhotos.length; i++) {
-      if (_controller.isSelected(i)) {
-        selectedTitles.add(visiblePhotos[i].title);
-      }
-    }
+    final selectedTitles = _controller
+        .selectedFrom(_visiblePhotos)
+        .map((p) => p.title)
+        .toList();
 
     print('Sharing: ${selectedTitles.join(', ')}');
   }
 
   void _deletePhotos() {
-    final visiblePhotos = _visiblePhotos;
-    final selectedPhotos = <Photo>[];
-
-    for (int i = 0; i < visiblePhotos.length; i++) {
-      if (_controller.isSelected(i)) {
-        selectedPhotos.add(visiblePhotos[i]);
-      }
-    }
+    final selectedPhotos = _controller.selectedFrom(_visiblePhotos).toList();
 
     showDialog(
       context: context,

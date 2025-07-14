@@ -7,3 +7,4 @@ export 'src/selection_options.dart';
 export 'src/haptic_feedback.dart';
 export 'src/selection_action_bar.dart';
 export 'src/selection_status_bar.dart';
+export 'src/selection_query.dart';
