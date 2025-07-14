@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:selection_mode/selection_mode.dart';
 
-import 'common/selection_footer.dart';
-
 class MixedSelectionDemo extends StatefulWidget {
   const MixedSelectionDemo({super.key});
 
@@ -104,7 +102,27 @@ class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
               left: 0,
               right: 0,
               bottom: 0,
-              child: SelectionFooter(child: _buildActionBar()),
+              child: SelectionActionBar(
+                spacing: 16,
+                borderRadius: BorderRadius.circular(20),
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.info_outline),
+                    onPressed: () => _showOptionsInfo(context),
+                    tooltip: 'Info',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.email),
+                    onPressed: _controller.hasSelection ? _emailContacts : null,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: _controller.hasSelection
+                        ? _deleteContacts
+                        : null,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -158,67 +176,6 @@ class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
       _controller.selectRange(start, end);
       // Note: With implicit behavior, mode will auto-enable if not already enabled
     }
-  }
-
-  Widget _buildActionBar() {
-    return ListenableBuilder(
-      listenable: _controller,
-      builder: (context, child) => Container(
-        height: 120,
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            if (_controller.hasSelection)
-              Text(
-                _buildRangeInfo(),
-                style: Theme.of(context).textTheme.bodySmall,
-                textAlign: TextAlign.center,
-              ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.email),
-                  label: const Text('Email'),
-                  onPressed: _controller.hasSelection ? _emailContacts : null,
-                ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.delete),
-                  label: const Text('Delete'),
-                  onPressed: _controller.hasSelection ? _deleteContacts : null,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _buildRangeInfo() {
-    final buffer = StringBuffer();
-    buffer.write('${_controller.selectedCount}/5 selected');
-
-    final sections = <String>[];
-    for (int i = 0; i < _items.length; i++) {
-      if (_items[i] is HeaderItem) {
-        final header = _items[i] as HeaderItem;
-        final (start, end) = _getSectionRange(i);
-        final count = _controller.getSelectedCountInRange(start, end);
-        final total = _controller.getSelectableInRange(start, end).length;
-
-        if (count > 0) {
-          sections.add('${header.title}: $count/$total');
-        }
-      }
-    }
-
-    if (sections.isNotEmpty) {
-      buffer.write(' (${sections.join(', ')})');
-    }
-
-    return buffer.toString();
   }
 
   void _handleItemTap(int index) {

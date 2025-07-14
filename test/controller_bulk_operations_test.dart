@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:selection_mode/selection_mode.dart';
+import 'test_helpers.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +17,7 @@ void main() {
     });
 
     test('deselectAll removes all selections', () {
+      controller.registerTestItems(10);
       controller.enable();
       controller.selectRange(0, 5);
 
@@ -25,6 +27,7 @@ void main() {
     });
 
     test('selectAll selects provided items', () {
+      controller.registerTestItems(10);
       controller.enable();
 
       controller.selectAll([1, 3, 5, 7]);
@@ -33,6 +36,7 @@ void main() {
     });
 
     test('invertSelection inverts selection', () {
+      controller.registerTestItems(10);
       controller.enable();
       controller.toggleItem(1);
       controller.toggleItem(3);

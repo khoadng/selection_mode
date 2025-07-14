@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:selection_mode/selection_mode.dart';
+import 'test_helpers.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +18,7 @@ void main() {
 
     group('Range Selection', () {
       test('selectRange selects items in range', () {
+        controller.registerTestItems(10);
         controller.enable();
 
         controller.selectRange(2, 5);
@@ -25,6 +27,7 @@ void main() {
       });
 
       test('deselectRange removes items in range', () {
+        controller.registerTestItems(15);
         controller.enable();
         controller.selectRange(0, 10);
 
@@ -34,6 +37,7 @@ void main() {
       });
 
       test('toggleRange toggles items in range', () {
+        controller.registerTestItems(10);
         controller.enable();
         controller.toggleItem(1);
         controller.toggleItem(3);
@@ -44,6 +48,7 @@ void main() {
       });
 
       test('range queries work correctly', () {
+        controller.registerTestItems(15);
         controller.enable();
         controller.selectRange(2, 8);
 
@@ -56,6 +61,7 @@ void main() {
 
     group('Shift Selection', () {
       test('handleSelection with shift creates range', () {
+        controller.registerTestItems(10);
         controller.enable();
         controller.handleSelection(2);
 
@@ -65,6 +71,7 @@ void main() {
       });
 
       test('setRangeAnchor sets anchor and selects item', () {
+        controller.registerTestItems(10);
         controller.enable();
 
         controller.setRangeAnchor(3);

@@ -7,14 +7,10 @@ import 'package:selection_mode/selection_mode.dart';
 class SelectionBuilder extends StatefulWidget {
   const SelectionBuilder({
     super.key,
-    this.controller,
     required this.index,
     required this.builder,
     this.isSelectable = true,
   });
-
-  /// The selection controller. If null, uses [SelectionMode.of(context)]
-  final SelectionModeController? controller;
 
   /// The index of this item
   final int index;
@@ -35,31 +31,48 @@ class SelectionBuilder extends StatefulWidget {
 class _SelectionBuilderState extends State<SelectionBuilder> {
   SelectionModeController? _controller;
 
+  /// Extract identifier from key, fallback to index
+  Object _getIdentifier() {
+    final key = widget.key;
+    if (key is ValueKey) return key.value;
+    if (key != null) return key;
+    return widget.index;
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final controller = SelectionMode.of(context);
     if (_controller != controller) {
-      _controller?.removeItem(widget.index);
+      _controller?.unregisterItem(widget.index);
       _controller = controller;
-      controller.setItemSelectable(widget.index, widget.isSelectable);
+      controller.registerItem(
+        widget.index,
+        _getIdentifier(),
+        widget.isSelectable,
+      );
     }
   }
 
   @override
   void didUpdateWidget(SelectionBuilder oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.isSelectable != widget.isSelectable) {
-      _controller?.setItemSelectable(widget.index, widget.isSelectable);
-    }
-  }
 
-  Offset? _getGlobalPosition(BuildContext context) {
-    // Get the center of the widget instead of top-left corner
-    final renderBox = context.findRenderObject() as RenderBox?;
-    if (renderBox == null) return null;
-    final size = renderBox.size;
-    return renderBox.localToGlobal(Offset(size.width / 2, size.height / 2));
+    final oldIdentifier = oldWidget.key is ValueKey
+        ? (oldWidget.key as ValueKey).value
+        : oldWidget.key ?? oldWidget.index;
+    final newIdentifier = _getIdentifier();
+
+    if (oldIdentifier != newIdentifier ||
+        oldWidget.index != widget.index ||
+        oldWidget.isSelectable != widget.isSelectable) {
+      _controller?.unregisterItem(oldWidget.index);
+      _controller?.registerItem(
+        widget.index,
+        newIdentifier,
+        widget.isSelectable,
+      );
+    }
   }
 
   Size? _getViewportSize(BuildContext context) {
@@ -72,7 +85,7 @@ class _SelectionBuilderState extends State<SelectionBuilder> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = widget.controller ?? SelectionMode.of(context);
+    final controller = SelectionMode.of(context);
 
     return ListenableBuilder(
       listenable: controller,
@@ -90,26 +103,23 @@ class _SelectionBuilderState extends State<SelectionBuilder> {
           return child;
         }
 
-        return DragTarget<int>(
+        return DragTarget(
           onWillAcceptWithDetails: (data) {
-            final globalPosition = _getGlobalPosition(context);
             final viewportSize = _getViewportSize(context);
-
             controller.handleDragOver(
               widget.index,
-              globalPosition,
+              data.offset,
               viewportSize,
             );
             return true;
           },
           builder: (context, candidateData, rejectedData) {
-            return LongPressDraggable<int>(
+            return LongPressDraggable(
               data: widget.index,
               onDragStarted: () {
                 controller.startRangeSelection(widget.index);
               },
               onDragEnd: (_) {
-                final controller = SelectionMode.of(context);
                 controller.endRangeSelection();
               },
               onDraggableCanceled: (_, __) {

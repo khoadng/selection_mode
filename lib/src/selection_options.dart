@@ -16,8 +16,8 @@ enum SelectionBehavior {
 /// Configuration for auto-scroll behavior during drag selection
 class AutoScrollConfig {
   const AutoScrollConfig({
-    this.edgeThreshold = 80.0,
-    this.scrollSpeed = 960.0,
+    this.edgeThreshold = 100,
+    this.scrollSpeed = 960,
   });
 
   /// Distance from viewport edge to trigger auto-scroll

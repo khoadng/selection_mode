@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:selection_mode/selection_mode.dart';
+import 'test_helpers.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +17,7 @@ void main() {
     });
 
     test('drag selection workflow', () {
+      controller.registerTestItems(10);
       controller.enable();
 
       controller.startRangeSelection(0);
@@ -29,6 +31,7 @@ void main() {
     });
 
     test('drag preserves pre-drag selections', () {
+      controller.registerTestItems(10);
       controller.enable();
       controller.toggleItem(5);
 

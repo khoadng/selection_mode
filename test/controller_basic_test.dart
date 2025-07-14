@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:selection_mode/selection_mode.dart';
+import 'test_helpers.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +23,7 @@ void main() {
     });
 
     test('enable/disable controls state and selection', () {
+      controller.registerTestItems(5);
       controller.enable();
       expect(controller.isActive, isTrue);
 
@@ -33,6 +35,7 @@ void main() {
     });
 
     test('toggleSelection adds and removes items', () {
+      controller.registerTestItems(5);
       controller.enable();
 
       controller.toggleItem(0);
@@ -45,6 +48,7 @@ void main() {
     });
 
     test('notifies listeners on state changes', () {
+      controller.registerTestItems(5);
       var notificationCount = 0;
       controller.addListener(() => notificationCount++);
 

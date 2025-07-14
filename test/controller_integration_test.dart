@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:selection_mode/selection_mode.dart';
+import 'test_helpers.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +13,7 @@ void main() {
           constraints: SelectionConstraints(maxSelections: 10),
         ),
       );
+      controller.registerTestItems(15);
 
       // Auto-enable on first selection
       controller.toggleItem(0);
@@ -41,6 +43,7 @@ void main() {
           constraints: SelectionConstraints(maxSelections: 3),
         ),
       );
+      controller.registerTestItems(15);
       controller.enable();
 
       controller.toggleItem(0);

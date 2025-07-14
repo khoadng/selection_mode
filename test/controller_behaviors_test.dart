@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:selection_mode/selection_mode.dart';
+import 'test_helpers.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +13,7 @@ void main() {
             behavior: SelectionBehavior.manual,
           ),
         );
+        controller.registerTestItems(5);
 
         controller.toggleItem(0);
         expect(controller.isActive, isFalse);
@@ -26,6 +28,7 @@ void main() {
             behavior: SelectionBehavior.manual,
           ),
         );
+        controller.registerTestItems(5);
 
         controller.enable();
         controller.toggleItem(0);
@@ -41,6 +44,7 @@ void main() {
             behavior: SelectionBehavior.manual,
           ),
         );
+        controller.registerTestItems(5);
 
         controller.enable();
         controller.toggleItem(0);
@@ -58,6 +62,7 @@ void main() {
             behavior: SelectionBehavior.manual,
           ),
         );
+        controller.registerTestItems(10);
 
         controller.selectRange(0, 3);
         expect(controller.isActive, isFalse);
@@ -74,6 +79,7 @@ void main() {
             behavior: SelectionBehavior.autoEnable,
           ),
         );
+        controller.registerTestItems(5);
 
         controller.toggleItem(0);
 
@@ -89,6 +95,7 @@ void main() {
             behavior: SelectionBehavior.autoEnable,
           ),
         );
+        controller.registerTestItems(5);
 
         controller.toggleItem(0); // Auto-enables
         controller.toggleItem(0); // Deselect
@@ -105,6 +112,7 @@ void main() {
             behavior: SelectionBehavior.autoEnable,
           ),
         );
+        controller.registerTestItems(10);
 
         controller.selectRange(0, 2);
 
@@ -122,6 +130,7 @@ void main() {
             behavior: SelectionBehavior.autoToggle,
           ),
         );
+        controller.registerTestItems(5);
 
         controller.toggleItem(0);
 
@@ -137,6 +146,7 @@ void main() {
             behavior: SelectionBehavior.autoToggle,
           ),
         );
+        controller.registerTestItems(5);
 
         controller.toggleItem(0); // Auto-enables
         controller.toggleItem(0); // Deselect - should auto-disable
@@ -153,6 +163,7 @@ void main() {
             behavior: SelectionBehavior.autoToggle,
           ),
         );
+        controller.registerTestItems(5);
 
         controller.toggleItem(0);
         controller.toggleItem(1);
@@ -169,6 +180,7 @@ void main() {
             behavior: SelectionBehavior.autoToggle,
           ),
         );
+        controller.registerTestItems(10);
 
         controller.selectRange(0, 2); // Auto-enables
         controller.deselectRange(0, 2); // Should auto-disable
@@ -185,6 +197,7 @@ void main() {
             behavior: SelectionBehavior.autoToggle,
           ),
         );
+        controller.registerTestItems(10);
 
         controller.selectAll([0, 1, 2]);
 
@@ -202,12 +215,14 @@ void main() {
             behavior: SelectionBehavior.manual,
           ),
         );
+        manualController.registerTestItems(5);
 
         final autoController = SelectionModeController(
           options: const SelectionOptions(
             behavior: SelectionBehavior.autoEnable,
           ),
         );
+        autoController.registerTestItems(5);
 
         // Manual should not work when disabled
         manualController.handleSelection(0);
@@ -229,12 +244,14 @@ void main() {
             behavior: SelectionBehavior.manual,
           ),
         );
+        manualController.registerTestItems(5);
 
         final autoController = SelectionModeController(
           options: const SelectionOptions(
             behavior: SelectionBehavior.autoEnable,
           ),
         );
+        autoController.registerTestItems(5);
 
         // Manual should not work when disabled
         manualController.invertSelection([0, 1, 2]);

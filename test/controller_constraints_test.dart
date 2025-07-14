@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:selection_mode/selection_mode.dart';
+import 'test_helpers.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +13,7 @@ void main() {
             constraints: SelectionConstraints(maxSelections: 2),
           ),
         );
+        controller.registerTestItems(10);
         controller.enable();
 
         controller.toggleItem(0);
@@ -26,6 +28,7 @@ void main() {
 
       test('updating options enforces new max selections', () {
         final controller = SelectionModeController();
+        controller.registerTestItems(10);
         controller.enable();
         controller.toggleItem(0);
         controller.toggleItem(1);
@@ -46,6 +49,7 @@ void main() {
     group('Item Selectability', () {
       test('unselectable items cannot be selected', () {
         final controller = SelectionModeController();
+        controller.registerTestItems(5);
         controller.enable();
         controller.setItemSelectable(0, false);
 
@@ -58,6 +62,7 @@ void main() {
 
       test('making selected item unselectable removes it', () {
         final controller = SelectionModeController();
+        controller.registerTestItems(5);
         controller.enable();
         controller.toggleItem(0);
 
@@ -70,6 +75,7 @@ void main() {
 
       test('range operations respect selectability', () {
         final controller = SelectionModeController();
+        controller.registerTestItems(10);
         controller.enable();
         controller.setItemSelectable(2, false);
         controller.setItemSelectable(4, false);
