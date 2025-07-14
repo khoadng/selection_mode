@@ -69,16 +69,6 @@ void main() {
 
         expect(controller.selection, equals({2, 3, 4, 5}));
       });
-
-      test('setRangeAnchor sets anchor and selects item', () {
-        controller.registerTestItems(10);
-        controller.enable();
-
-        controller.setRangeAnchor(3);
-
-        expect(controller.rangeAnchor, equals(3));
-        expect(controller.isSelected(3), isTrue);
-      });
     });
   });
 }

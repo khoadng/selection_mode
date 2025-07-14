@@ -102,7 +102,7 @@ class _BasicListDemoState extends State<BasicListDemo> {
   }
 
   void _copySelected() {
-    print('Copied ${_controller.selectedCount} items');
+    print('Copied ${_controller.selection.length} items');
     _controller.disable();
   }
 }

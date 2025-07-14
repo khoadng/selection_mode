@@ -21,7 +21,7 @@ void main() {
         controller.toggleItem(2);
 
         expect(controller.selection, equals({0, 1}));
-        expect(controller.selectedCount, equals(2));
+        expect(controller.selection.length, equals(2));
 
         controller.dispose();
       });
@@ -40,7 +40,7 @@ void main() {
           ),
         );
 
-        expect(controller.selectedCount, equals(2));
+        expect(controller.selection.length, equals(2));
 
         controller.dispose();
       });

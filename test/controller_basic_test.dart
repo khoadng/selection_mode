@@ -18,8 +18,8 @@ void main() {
     test('initial state is correct', () {
       expect(controller.isActive, isFalse);
       expect(controller.selection, isEmpty);
-      expect(controller.selectedCount, equals(0));
-      expect(controller.hasSelection, isFalse);
+      expect(controller.selection.length, equals(0));
+      expect(controller.selection.isNotEmpty, isFalse);
     });
 
     test('enable/disable controls state and selection', () {
@@ -40,11 +40,11 @@ void main() {
 
       controller.toggleItem(0);
       expect(controller.isSelected(0), isTrue);
-      expect(controller.selectedCount, equals(1));
+      expect(controller.selection.length, equals(1));
 
       controller.toggleItem(0);
       expect(controller.isSelected(0), isFalse);
-      expect(controller.selectedCount, equals(0));
+      expect(controller.selection.length, equals(0));
     });
 
     test('notifies listeners on state changes', () {

@@ -51,7 +51,7 @@ void main() {
         controller.toggleItem(0); // Deselect
 
         expect(controller.isActive, isTrue);
-        expect(controller.hasSelection, isFalse);
+        expect(controller.selection.isNotEmpty, isFalse);
 
         controller.dispose();
       });
@@ -101,7 +101,7 @@ void main() {
         controller.toggleItem(0); // Deselect
 
         expect(controller.isActive, isTrue);
-        expect(controller.hasSelection, isFalse);
+        expect(controller.selection.isNotEmpty, isFalse);
 
         controller.dispose();
       });
@@ -152,7 +152,7 @@ void main() {
         controller.toggleItem(0); // Deselect - should auto-disable
 
         expect(controller.isActive, isFalse);
-        expect(controller.hasSelection, isFalse);
+        expect(controller.selection.isNotEmpty, isFalse);
 
         controller.dispose();
       });
@@ -186,7 +186,7 @@ void main() {
         controller.deselectRange(0, 2); // Should auto-disable
 
         expect(controller.isActive, isFalse);
-        expect(controller.hasSelection, isFalse);
+        expect(controller.selection.isNotEmpty, isFalse);
 
         controller.dispose();
       });

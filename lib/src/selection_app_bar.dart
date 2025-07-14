@@ -106,8 +106,8 @@ class MaterialSelectionAppBar extends StatelessWidget
     final colorScheme = theme.colorScheme;
 
     return AppBar(
-      title: selectionTitle?.call(context, ctrl.selectedCount) ??
-          Text('${ctrl.selectedCount} selected'),
+      title: selectionTitle?.call(context, ctrl.selection.length) ??
+          Text('${ctrl.selection.length} selected'),
       leading: IconButton(
         icon: const Icon(Icons.close),
         onPressed: onCancel ?? ctrl.disable,

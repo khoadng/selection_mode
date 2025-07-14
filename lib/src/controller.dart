@@ -42,11 +42,6 @@ class SelectionModeController extends ChangeNotifier {
         .toSet();
   }
 
-  Set<Object> get selectedIdentifiers => Set.unmodifiable(_selectedIdentifiers);
-
-  int get selectedCount => _selectedIdentifiers.length;
-  bool get hasSelection => _selectedIdentifiers.isNotEmpty;
-  int? get rangeAnchor => _rangeManager.anchor;
   bool get isDragInProgress => _dragManager.isDragInProgress;
 
   void registerItem(int index, Object identifier, bool isSelectable) {

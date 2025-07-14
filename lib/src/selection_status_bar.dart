@@ -51,11 +51,11 @@ class SelectionStatusBar extends StatelessWidget {
       BuildContext context, SelectionModeController controller) {
     final theme = Theme.of(context);
 
-    final status = statusBuilder?.call(context, controller.selectedCount) ??
+    final status = statusBuilder?.call(context, controller.selection.length) ??
         Text(
-          controller.selectedCount == 1
+          controller.selection.length == 1
               ? '1 Selected'
-              : '${controller.selectedCount} Selected',
+              : '${controller.selection.length} Selected',
           style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.w500,
           ),

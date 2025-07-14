@@ -113,11 +113,13 @@ class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.email),
-                    onPressed: _controller.hasSelection ? _emailContacts : null,
+                    onPressed: _controller.selection.isNotEmpty
+                        ? _emailContacts
+                        : null,
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete),
-                    onPressed: _controller.hasSelection
+                    onPressed: _controller.selection.isNotEmpty
                         ? _deleteContacts
                         : null,
                   ),
@@ -207,7 +209,7 @@ class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Contacts'),
-        content: Text('Delete ${_controller.selectedCount} contacts?'),
+        content: Text('Delete ${_controller.selection.length} contacts?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -279,7 +281,7 @@ class _BehaviorIndicator extends StatelessWidget {
       listenable: controller,
       builder: (context, child) {
         final isEnabled = controller.isActive;
-        final hasSelection = controller.hasSelection;
+        final hasSelection = controller.selection.isNotEmpty;
 
         return Container(
           width: double.infinity,
@@ -310,7 +312,7 @@ class _BehaviorIndicator extends StatelessWidget {
               if (hasSelection) ...[
                 const SizedBox(width: 8),
                 Text(
-                  '(${controller.selectedCount} selected)',
+                  '(${controller.selection.length} selected)',
                   style: TextStyle(fontSize: 12, color: Colors.green[600]),
                 ),
               ],

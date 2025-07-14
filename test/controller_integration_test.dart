@@ -52,7 +52,7 @@ void main() {
       controller.startRangeSelection(5);
       controller.handleDragOver(8);
 
-      expect(controller.selectedCount, equals(3));
+      expect(controller.selection.length, equals(3));
       expect(controller.selection, contains(0));
       expect(controller.selection, contains(1));
 
