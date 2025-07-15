@@ -1,3 +1,6 @@
+import 'package:flutter/widgets.dart';
+
+import 'auto_scroll_manager.dart';
 import 'haptic_feedback.dart';
 import 'selection_constraints.dart';
 
@@ -13,37 +16,28 @@ enum SelectionBehavior {
   autoEnable,
 }
 
-/// Configuration for auto-scroll behavior during drag selection
-class AutoScrollConfig {
-  const AutoScrollConfig({
-    this.edgeThreshold = 100,
-    this.scrollSpeed = 960,
+/// Configuration for drag selection behavior
+class DragSelectionOptions {
+  const DragSelectionOptions({
+    this.axis,
+    this.delay,
   });
 
-  /// Distance from viewport edge to trigger auto-scroll
-  final double edgeThreshold;
+  /// Axis to constrain drag selection. If null, allows free dragging.
+  final Axis? axis;
 
-  /// Scroll speed in pixels per second
-  final double scrollSpeed;
-
-  AutoScrollConfig copyWith({
-    double? edgeThreshold,
-    double? scrollSpeed,
-  }) {
-    return AutoScrollConfig(
-      edgeThreshold: edgeThreshold ?? this.edgeThreshold,
-      scrollSpeed: scrollSpeed ?? this.scrollSpeed,
-    );
-  }
+  /// Delay before starting drag selection, useful for preventing accidental drags
+  final Duration? delay;
 }
 
 /// Configuration options for SelectionMode behavior
 class SelectionOptions {
   const SelectionOptions({
-    this.haptics,
+    this.haptics = HapticFeedbackResolver.all,
     this.behavior = SelectionBehavior.autoEnable,
-    this.constraints = const SelectionConstraints.none(),
-    this.autoScroll,
+    this.dragSelection = const DragSelectionOptions(),
+    this.autoScroll = const AutoScrollOptions(),
+    this.constraints,
   });
 
   /// Haptic feedback resolver. If null, no haptic feedback is provided.
@@ -52,34 +46,20 @@ class SelectionOptions {
   /// Selection mode behavior pattern
   final SelectionBehavior behavior;
 
-  /// Selection constraints
-  final SelectionConstraints constraints;
+  /// Selection constraints. If null, no constraints are applied.
+  final SelectionConstraints? constraints;
 
-  /// Auto-scroll configuration for drag selection (null = disabled)
-  final AutoScrollConfig? autoScroll;
+  /// Auto-scroll configuration for drag selection. If null, no auto-scroll is applied.
+  final AutoScrollOptions? autoScroll;
 
-  /// Default configuration with haptic feedback for all events
-  static const defaultOptions = SelectionOptions(
-    haptics: HapticFeedbackResolver.all,
-  );
-
-  /// Manual selection mode - explicit enable/disable only
-  static const manual = SelectionOptions(
-    behavior: SelectionBehavior.manual,
-    haptics: HapticFeedbackResolver.modeOnly,
-  );
-
-  /// Implicit selection mode - auto enable + auto exit when empty
-  static const implicit = SelectionOptions(
-    behavior: SelectionBehavior.autoToggle,
-    haptics: HapticFeedbackResolver.all,
-  );
+  /// Drag selection options. If null, drag selection is disabled.
+  final DragSelectionOptions? dragSelection;
 
   SelectionOptions copyWith({
     HapticResolver? haptics,
     SelectionBehavior? behavior,
     SelectionConstraints? constraints,
-    AutoScrollConfig? autoScroll,
+    AutoScrollOptions? autoScroll,
   }) {
     return SelectionOptions(
       haptics: haptics ?? this.haptics,

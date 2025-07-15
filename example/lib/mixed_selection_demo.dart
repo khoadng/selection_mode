@@ -9,12 +9,7 @@ class MixedSelectionDemo extends StatefulWidget {
 }
 
 class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
-  final _controller = SelectionModeController(
-    options: SelectionOptions(
-      constraints: SelectionConstraints(maxSelections: 5),
-      behavior: SelectionBehavior.autoToggle,
-    ),
-  );
+  final _controller = SelectionModeController();
   final _items = _generateMixedItems();
 
   @override
@@ -67,6 +62,10 @@ class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
   Widget build(BuildContext context) {
     return SelectionMode(
       controller: _controller,
+      options: SelectionOptions(
+        constraints: SelectionConstraints(maxSelections: 5),
+        behavior: SelectionBehavior.autoToggle,
+      ),
       child: Scaffold(
         appBar: MaterialSelectionAppBar(
           controller: _controller,

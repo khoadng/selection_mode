@@ -7,8 +7,9 @@ void main() {
 
   group('SelectionModeController - Integration Scenarios', () {
     test('complex selection workflow', () {
-      final controller = SelectionModeController(
-        options: const SelectionOptions(
+      final controller = SelectionModeController();
+      controller.updateOptions(
+        const SelectionOptions(
           behavior: SelectionBehavior.autoToggle,
           constraints: SelectionConstraints(maxSelections: 10),
         ),
@@ -38,8 +39,9 @@ void main() {
     });
 
     test('max selection limits during drag', () {
-      final controller = SelectionModeController(
-        options: const SelectionOptions(
+      final controller = SelectionModeController();
+      controller.updateOptions(
+        const SelectionOptions(
           constraints: SelectionConstraints(maxSelections: 3),
         ),
       );

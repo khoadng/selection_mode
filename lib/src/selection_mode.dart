@@ -7,6 +7,7 @@ class SelectionMode extends StatefulWidget {
   const SelectionMode({
     super.key,
     this.controller,
+    this.options,
     this.onModeChanged,
     this.onChanged,
     this.scrollController,
@@ -14,6 +15,7 @@ class SelectionMode extends StatefulWidget {
   });
 
   final SelectionModeController? controller;
+  final SelectionOptions? options;
   final ScrollController? scrollController;
   final void Function(bool value)? onModeChanged;
   final void Function(Set<int> selection)? onChanged;
@@ -48,11 +50,14 @@ class _SelectionModeState extends State<SelectionMode> {
   Set<int> _previousSelection = {};
   AutoScrollManager? _autoScrollManager;
   late final ValueNotifier<bool> _enable;
+  late SelectionOptions _effectiveOptions;
 
   @override
   void initState() {
     super.initState();
+    _effectiveOptions = widget.options ?? const SelectionOptions();
     _controller = widget.controller ?? SelectionModeController();
+    _controller.updateOptions(_effectiveOptions);
     _enable = ValueNotifier(_controller.isActive);
     _previousActive = _controller.isActive;
     _previousSelection = Set.from(_controller.selection);
@@ -68,9 +73,17 @@ class _SelectionModeState extends State<SelectionMode> {
   @override
   void didUpdateWidget(SelectionMode oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    if (widget.options != oldWidget.options) {
+      _effectiveOptions = widget.options ?? const SelectionOptions();
+      _controller.updateOptions(_effectiveOptions);
+      _setupAutoScroll();
+    }
+
     if (widget.controller != oldWidget.controller) {
       _controller.removeListener(_onControllerChanged);
       _controller = widget.controller ?? SelectionModeController();
+      _controller.updateOptions(_effectiveOptions);
       _enable.value = _controller.isActive;
       _previousActive = _controller.isActive;
       _previousSelection = Set.from(_controller.selection);
@@ -90,15 +103,13 @@ class _SelectionModeState extends State<SelectionMode> {
   }
 
   void _setupAutoScroll() {
-    final autoScrollConfig =
-        _controller.options.autoScroll ?? AutoScrollConfig();
+    final autoScrollConfig = _effectiveOptions.autoScroll;
 
-    // Dispose existing manager
     _autoScrollManager?.dispose();
     _autoScrollManager = null;
     final scrollController = widget.scrollController;
 
-    if (scrollController != null) {
+    if (scrollController != null && autoScrollConfig != null) {
       _autoScrollManager = AutoScrollManager(
         scrollController: scrollController,
         config: autoScrollConfig,
@@ -113,13 +124,11 @@ class _SelectionModeState extends State<SelectionMode> {
     final currentSelection = _controller.selection;
     _enable.value = currentEnabled;
 
-    // Check for enabled state changes
     if (_previousActive != currentEnabled) {
       widget.onModeChanged?.call(currentEnabled);
       _previousActive = currentEnabled;
     }
 
-    // Check for selection changes - only call when selection actually changed
     if (_previousSelection != currentSelection) {
       widget.onChanged?.call(Set.from(currentSelection));
       _previousSelection = Set.from(currentSelection);

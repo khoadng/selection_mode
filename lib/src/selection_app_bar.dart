@@ -41,9 +41,6 @@ class SelectionAppBarBuilder extends StatelessWidget
 }
 
 /// Material Design app bar that adapts to selection mode.
-///
-/// Follows Material Design guidelines for selection mode with sensible defaults
-/// while allowing customization of common elements.
 class MaterialSelectionAppBar extends StatelessWidget
     implements PreferredSizeWidget {
   const MaterialSelectionAppBar({

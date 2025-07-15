@@ -1,5 +1,5 @@
 name: selection_mode
-description: "Multi-item selection with drag gestures and flexible behavior patterns for Flutter"
+description: "A Flutter package for multi-item selection with range selection"
 version: 0.0.1
 homepage: https://github.com/khoadng/selection_mode
 repository: https://github.com/khoadng/selection_mode

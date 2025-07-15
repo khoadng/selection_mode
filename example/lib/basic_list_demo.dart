@@ -9,9 +9,7 @@ class BasicListDemo extends StatefulWidget {
 }
 
 class _BasicListDemoState extends State<BasicListDemo> {
-  final _controller = SelectionModeController(
-    options: const SelectionOptions(behavior: SelectionBehavior.manual),
-  );
+  final _controller = SelectionModeController();
   final _items = List.generate(50, (index) => 'Item ${index + 1}');
   final _scrollController = ScrollController();
 
@@ -27,6 +25,7 @@ class _BasicListDemoState extends State<BasicListDemo> {
     return SelectionMode(
       scrollController: _scrollController,
       controller: _controller,
+      options: const SelectionOptions(behavior: SelectionBehavior.manual),
       onModeChanged: (enabled) {
         print('Selection mode: $enabled');
       },

@@ -63,13 +63,8 @@ class SelectionStatusBar extends StatelessWidget {
 
     Widget content = Row(
       children: [
-        // Left actions
         ...leftActions,
-
-        // Status in center
         Expanded(child: Center(child: status)),
-
-        // Right actions
         ...rightActions,
       ],
     );

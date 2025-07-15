@@ -8,8 +8,9 @@ void main() {
   group('SelectionModeController - Constraints', () {
     group('Max Selections', () {
       test('respects max selections limit', () {
-        final controller = SelectionModeController(
-          options: const SelectionOptions(
+        final controller = SelectionModeController();
+        controller.updateOptions(
+          const SelectionOptions(
             constraints: SelectionConstraints(maxSelections: 2),
           ),
         );

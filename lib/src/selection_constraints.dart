@@ -4,8 +4,6 @@ class SelectionConstraints {
     this.maxSelections,
   });
 
-  const SelectionConstraints.none() : maxSelections = null;
-
   /// Maximum number of items that can be selected (null = unlimited)
   final int? maxSelections;
 

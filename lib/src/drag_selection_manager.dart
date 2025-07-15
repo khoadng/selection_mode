@@ -38,7 +38,7 @@ class DragSelectionManager {
   DragUpdateResult calculateDragUpdate(
     int targetIndex,
     bool Function(int) isSelectable,
-    SelectionConstraints constraints,
+    SelectionConstraints? constraints,
   ) {
     if (!_isDragInProgress || _dragAnchor == null) {
       return DragUpdateResult(
@@ -54,7 +54,10 @@ class DragSelectionManager {
     final anchor = _dragAnchor!;
 
     if (targetIndex == anchor) {
-      if (constraints.canAddToSelection(newSelection)) {
+      final canAddToSelection =
+          constraints?.canAddToSelection(newSelection) ?? true;
+
+      if (canAddToSelection) {
         newSelection.add(anchor);
       } else {
         hitLimit = true;
@@ -65,7 +68,9 @@ class DragSelectionManager {
 
       for (int i = start; i <= end; i++) {
         if (isSelectable(i)) {
-          if (constraints.canAddToSelection(newSelection)) {
+          final canAddToSelection =
+              constraints?.canAddToSelection(newSelection) ?? true;
+          if (canAddToSelection) {
             newSelection.add(i);
           } else if (!hitLimit) {
             hitLimit = true;

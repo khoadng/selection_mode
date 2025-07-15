@@ -52,14 +52,14 @@ class DemoHomePage extends StatelessWidget {
                 children: [
                   _DemoCard(
                     title: 'Basic List Selection',
-                    description: 'Simple list with default options',
+                    description: 'Simple list with manual selection mode',
                     icon: Icons.list,
                     onTap: () => _navigateTo(context, const BasicListDemo()),
                   ),
                   const SizedBox(height: 16),
                   _DemoCard(
                     title: 'Grid Photo Gallery',
-                    description: 'Photo grid with performance options',
+                    description: 'Photo grid with default behavior',
                     icon: Icons.photo_library,
                     onTap: () =>
                         _navigateTo(context, const GridSelectionDemo()),
@@ -67,7 +67,8 @@ class DemoHomePage extends StatelessWidget {
                   const SizedBox(height: 16),
                   _DemoCard(
                     title: 'Mixed Selection List',
-                    description: 'Contact list with custom behavior',
+                    description:
+                        'Contact list with implicit behavior and constraints',
                     icon: Icons.contacts,
                     onTap: () =>
                         _navigateTo(context, const MixedSelectionDemo()),

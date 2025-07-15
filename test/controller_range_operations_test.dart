@@ -58,17 +58,5 @@ void main() {
         expect(controller.isRangeFullySelected(3, 5), isTrue);
       });
     });
-
-    group('Shift Selection', () {
-      test('handleSelection with shift creates range', () {
-        controller.registerTestItems(10);
-        controller.enable();
-        controller.handleSelection(2);
-
-        controller.handleSelection(5, isShiftPressed: true);
-
-        expect(controller.selection, equals({2, 3, 4, 5}));
-      });
-    });
   });
 }

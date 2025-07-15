@@ -8,8 +8,9 @@ void main() {
   group('SelectionModeController - Selection Behaviors', () {
     group('Manual Behavior', () {
       test('blocks selection when disabled', () {
-        final controller = SelectionModeController(
-          options: const SelectionOptions(
+        final controller = SelectionModeController();
+        controller.updateOptions(
+          const SelectionOptions(
             behavior: SelectionBehavior.manual,
           ),
         );
@@ -23,8 +24,9 @@ void main() {
       });
 
       test('allows selection when enabled', () {
-        final controller = SelectionModeController(
-          options: const SelectionOptions(
+        final controller = SelectionModeController();
+        controller.updateOptions(
+          const SelectionOptions(
             behavior: SelectionBehavior.manual,
           ),
         );
@@ -39,8 +41,9 @@ void main() {
       });
 
       test('does not auto-disable when empty', () {
-        final controller = SelectionModeController(
-          options: const SelectionOptions(
+        final controller = SelectionModeController();
+        controller.updateOptions(
+          const SelectionOptions(
             behavior: SelectionBehavior.manual,
           ),
         );
@@ -57,8 +60,9 @@ void main() {
       });
 
       test('blocks range operations when disabled', () {
-        final controller = SelectionModeController(
-          options: const SelectionOptions(
+        final controller = SelectionModeController();
+        controller.updateOptions(
+          const SelectionOptions(
             behavior: SelectionBehavior.manual,
           ),
         );
@@ -74,8 +78,9 @@ void main() {
 
     group('AutoEnable Behavior', () {
       test('auto-enables on first selection', () {
-        final controller = SelectionModeController(
-          options: const SelectionOptions(
+        final controller = SelectionModeController();
+        controller.updateOptions(
+          const SelectionOptions(
             behavior: SelectionBehavior.autoEnable,
           ),
         );
@@ -90,8 +95,9 @@ void main() {
       });
 
       test('does not auto-disable when empty', () {
-        final controller = SelectionModeController(
-          options: const SelectionOptions(
+        final controller = SelectionModeController();
+        controller.updateOptions(
+          const SelectionOptions(
             behavior: SelectionBehavior.autoEnable,
           ),
         );
@@ -107,8 +113,9 @@ void main() {
       });
 
       test('allows range operations when disabled', () {
-        final controller = SelectionModeController(
-          options: const SelectionOptions(
+        final controller = SelectionModeController();
+        controller.updateOptions(
+          const SelectionOptions(
             behavior: SelectionBehavior.autoEnable,
           ),
         );
@@ -125,8 +132,9 @@ void main() {
 
     group('Implicit Behavior', () {
       test('auto-enables on first selection', () {
-        final controller = SelectionModeController(
-          options: const SelectionOptions(
+        final controller = SelectionModeController();
+        controller.updateOptions(
+          const SelectionOptions(
             behavior: SelectionBehavior.autoToggle,
           ),
         );
@@ -141,8 +149,9 @@ void main() {
       });
 
       test('auto-disables when empty', () {
-        final controller = SelectionModeController(
-          options: const SelectionOptions(
+        final controller = SelectionModeController();
+        controller.updateOptions(
+          const SelectionOptions(
             behavior: SelectionBehavior.autoToggle,
           ),
         );
@@ -158,8 +167,9 @@ void main() {
       });
 
       test('auto-disables when cleared', () {
-        final controller = SelectionModeController(
-          options: const SelectionOptions(
+        final controller = SelectionModeController();
+        controller.updateOptions(
+          const SelectionOptions(
             behavior: SelectionBehavior.autoToggle,
           ),
         );
@@ -175,8 +185,9 @@ void main() {
       });
 
       test('auto-disables when range deselected to empty', () {
-        final controller = SelectionModeController(
-          options: const SelectionOptions(
+        final controller = SelectionModeController();
+        controller.updateOptions(
+          const SelectionOptions(
             behavior: SelectionBehavior.autoToggle,
           ),
         );
@@ -192,8 +203,9 @@ void main() {
       });
 
       test('allows operations when disabled', () {
-        final controller = SelectionModeController(
-          options: const SelectionOptions(
+        final controller = SelectionModeController();
+        controller.updateOptions(
+          const SelectionOptions(
             behavior: SelectionBehavior.autoToggle,
           ),
         );
@@ -210,15 +222,17 @@ void main() {
 
     group('Behavior Consistency', () {
       test('handleSelection respects behavior modes', () {
-        final manualController = SelectionModeController(
-          options: const SelectionOptions(
+        final manualController = SelectionModeController();
+        manualController.updateOptions(
+          const SelectionOptions(
             behavior: SelectionBehavior.manual,
           ),
         );
         manualController.registerTestItems(5);
 
-        final autoController = SelectionModeController(
-          options: const SelectionOptions(
+        final autoController = SelectionModeController();
+        autoController.updateOptions(
+          const SelectionOptions(
             behavior: SelectionBehavior.autoEnable,
           ),
         );
@@ -239,15 +253,17 @@ void main() {
       });
 
       test('invertSelection respects behavior modes', () {
-        final manualController = SelectionModeController(
-          options: const SelectionOptions(
+        final manualController = SelectionModeController();
+        manualController.updateOptions(
+          const SelectionOptions(
             behavior: SelectionBehavior.manual,
           ),
         );
         manualController.registerTestItems(5);
 
-        final autoController = SelectionModeController(
-          options: const SelectionOptions(
+        final autoController = SelectionModeController();
+        autoController.updateOptions(
+          const SelectionOptions(
             behavior: SelectionBehavior.autoEnable,
           ),
         );

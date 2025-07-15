@@ -20,7 +20,7 @@ enum HapticEvent {
   /// An item was deselected during drag/range selection
   itemDeselectedInRange,
 
-  /// Multiple items selected via range selection (shift+click, select all)
+  /// Multiple items selected via range selection
   rangeSelection,
 
   /// Drag selection started

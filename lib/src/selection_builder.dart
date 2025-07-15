@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:selection_mode/selection_mode.dart';
 
@@ -97,10 +98,31 @@ class _SelectionBuilderState extends State<SelectionBuilder> {
           return child;
         }
 
+        final options = controller.options;
+
         // In manual mode when disabled, don't consume long press
-        if (controller.options.behavior == SelectionBehavior.manual &&
+        if (options.behavior == SelectionBehavior.manual &&
             !controller.isActive) {
           return child;
+        }
+
+        final dragSelection = options.dragSelection;
+
+        if (dragSelection == null) {
+          return RawGestureDetector(
+            gestures: <Type, GestureRecognizerFactory>{
+              LongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<
+                  LongPressGestureRecognizer>(
+                () => LongPressGestureRecognizer(),
+                (LongPressGestureRecognizer instance) {
+                  instance.onLongPress = () {
+                    controller.enable(initialSelected: [widget.index]);
+                  };
+                },
+              ),
+            },
+            child: child,
+          );
         }
 
         return DragTarget(
@@ -122,11 +144,11 @@ class _SelectionBuilderState extends State<SelectionBuilder> {
               onDragEnd: (_) {
                 controller.endRangeSelection();
               },
-              onDraggableCanceled: (_, __) {
-                controller.endRangeSelection();
-              },
               feedback: const SizedBox.shrink(),
+              hapticFeedbackOnStart: false,
               childWhenDragging: child,
+              delay: dragSelection.delay ?? kLongPressTimeout,
+              axis: dragSelection.axis,
               child: child,
             );
           },
