@@ -127,12 +127,7 @@ class _SelectionBuilderState extends State<SelectionBuilder> {
 
         return DragTarget(
           onWillAcceptWithDetails: (data) {
-            final viewportSize = _getViewportSize(context);
-            controller.handleDragOver(
-              widget.index,
-              data.offset,
-              viewportSize,
-            );
+            controller.handleDragOver(widget.index);
             return true;
           },
           builder: (context, candidateData, rejectedData) {
@@ -140,6 +135,13 @@ class _SelectionBuilderState extends State<SelectionBuilder> {
               data: widget.index,
               onDragStarted: () {
                 controller.startRangeSelection(widget.index);
+              },
+              onDragUpdate: (details) {
+                final viewportSize = _getViewportSize(context);
+                if (viewportSize != null) {
+                  controller.handleDragUpdate(
+                      details.globalPosition, viewportSize);
+                }
               },
               onDragEnd: (_) {
                 controller.endRangeSelection();

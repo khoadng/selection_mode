@@ -378,18 +378,17 @@ class SelectionModeController extends ChangeNotifier {
     }
   }
 
-  void handleDragOver(int index, [Offset? globalPosition, Size? viewportSize]) {
+  void handleDragUpdate(Offset globalPosition, Size viewportSize) {
+    if (!_dragManager.isDragInProgress) return;
+
+    _autoScrollManager?.handleDragUpdate(globalPosition, viewportSize);
+  }
+
+  void handleDragOver(int index) {
     if (!_dragManager.isDragInProgress ||
         _rangeManager.anchor == null ||
         !isSelectable(index)) {
       return;
-    }
-
-    // Handle auto-scroll if enabled and position/viewport provided
-    if (_autoScrollManager != null &&
-        globalPosition != null &&
-        viewportSize != null) {
-      _autoScrollManager!.handleDragUpdate(globalPosition, viewportSize);
     }
 
     final result = _dragManager.calculateDragUpdate(
@@ -397,6 +396,13 @@ class SelectionModeController extends ChangeNotifier {
       _selectabilityManager.isSelectable,
       _options.constraints,
     );
+
+    // Early return if selection hasn't changed
+    final currentSelection = selection;
+    if (result.newSelection.length == currentSelection.length &&
+        result.newSelection.containsAll(currentSelection)) {
+      return;
+    }
 
     // Trigger haptic for newly selected/deselected items during drag
     if (result.newlySelected.isNotEmpty) {

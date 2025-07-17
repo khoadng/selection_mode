@@ -1,29 +1,7 @@
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
-/// Configuration for auto-scroll behavior during drag selection
-class AutoScrollOptions {
-  const AutoScrollOptions({
-    this.edgeThreshold = 120,
-    this.scrollSpeed = 1200,
-  });
-
-  /// Distance from viewport edge to trigger auto-scroll
-  final double edgeThreshold;
-
-  /// Scroll speed in pixels per second
-  final double scrollSpeed;
-
-  AutoScrollOptions copyWith({
-    double? edgeThreshold,
-    double? scrollSpeed,
-  }) {
-    return AutoScrollOptions(
-      edgeThreshold: edgeThreshold ?? this.edgeThreshold,
-      scrollSpeed: scrollSpeed ?? this.scrollSpeed,
-    );
-  }
-}
+import 'auto_scroll_options.dart';
 
 enum ScrollDirection { up, down, none }
 
@@ -35,7 +13,7 @@ class AutoScrollManager {
   });
 
   final ScrollController scrollController;
-  final AutoScrollOptions config;
+  final SelectionAutoScrollOptions config;
 
   Ticker? _ticker;
   ScrollDirection _currentDirection = ScrollDirection.none;
@@ -44,6 +22,12 @@ class AutoScrollManager {
   /// Handle drag update and determine if auto-scroll should trigger
   void handleDragUpdate(Offset globalPosition, Size viewportSize) {
     if (!scrollController.hasClients) return;
+
+    if (globalPosition.dy < -config.edgeThreshold ||
+        globalPosition.dy > viewportSize.height + config.edgeThreshold) {
+      stopAutoScroll();
+      return;
+    }
 
     final direction = _calculateScrollDirection(globalPosition, viewportSize);
     final speed = _calculateScrollSpeed(

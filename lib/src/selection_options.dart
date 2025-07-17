@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import 'auto_scroll_manager.dart';
+import 'auto_scroll_options.dart';
 import 'haptic_feedback.dart';
 import 'selection_constraints.dart';
 
@@ -36,7 +36,7 @@ class SelectionOptions {
     this.haptics = HapticFeedbackResolver.all,
     this.behavior = SelectionBehavior.autoEnable,
     this.dragSelection = const DragSelectionOptions(),
-    this.autoScroll = const AutoScrollOptions(),
+    this.autoScroll = const SelectionAutoScrollOptions(),
     this.constraints,
   });
 
@@ -50,7 +50,7 @@ class SelectionOptions {
   final SelectionConstraints? constraints;
 
   /// Auto-scroll configuration for drag selection. If null, no auto-scroll is applied.
-  final AutoScrollOptions? autoScroll;
+  final SelectionAutoScrollOptions? autoScroll;
 
   /// Drag selection options. If null, drag selection is disabled.
   final DragSelectionOptions? dragSelection;
@@ -59,7 +59,7 @@ class SelectionOptions {
     HapticResolver? haptics,
     SelectionBehavior? behavior,
     SelectionConstraints? constraints,
-    AutoScrollOptions? autoScroll,
+    SelectionAutoScrollOptions? autoScroll,
   }) {
     return SelectionOptions(
       haptics: haptics ?? this.haptics,
