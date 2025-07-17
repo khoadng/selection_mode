@@ -148,7 +148,16 @@ class _SelectionModeState extends State<SelectionMode> {
               _controller.disable();
             }
           },
-          child: widget.child,
+          child: Listener(
+            onPointerUp: enabled
+                ? (event) {
+                    if (_controller.isDragInProgress) {
+                      _controller.endRangeSelection();
+                    }
+                  }
+                : null,
+            child: widget.child,
+          ),
         ),
       ),
     );
