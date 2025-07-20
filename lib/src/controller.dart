@@ -86,22 +86,26 @@ class SelectionModeController extends ChangeNotifier {
     _autoScrollManager = manager;
   }
 
-  void updateOptions(SelectionOptions newOptions) {
-    _options = newOptions;
-    final maxSelections = _options.constraints?.maxSelections;
+  void _applyOptions(SelectionOptions options) {
+    _options = options;
+    final maxSelections = options.constraints?.maxSelections;
 
-    if (maxSelections != null) {
-      if (_selectedIdentifiers.length > maxSelections) {
-        final identifiersToRemove =
-            _selectedIdentifiers.skip(maxSelections).toList();
-        for (final id in identifiersToRemove) {
-          _selectedIdentifiers.remove(id);
-        }
-        _checkAutoDisable();
+    if (maxSelections != null && _selectedIdentifiers.length > maxSelections) {
+      final identifiersToRemove =
+          _selectedIdentifiers.skip(maxSelections).toList();
+      for (final id in identifiersToRemove) {
+        _selectedIdentifiers.remove(id);
       }
+      _checkAutoDisable();
     }
+  }
 
-    // Notify listeners to update UI based on new options
+  void initializeOptions(SelectionOptions options) {
+    _applyOptions(options);
+  }
+
+  void updateOptions(SelectionOptions options) {
+    _applyOptions(options);
     notifyListeners();
   }
 

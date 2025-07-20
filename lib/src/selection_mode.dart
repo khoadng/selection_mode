@@ -57,7 +57,7 @@ class _SelectionModeState extends State<SelectionMode> {
     super.initState();
     _effectiveOptions = widget.options ?? const SelectionOptions();
     _controller = widget.controller ?? SelectionModeController();
-    _controller.updateOptions(_effectiveOptions);
+    _controller.initializeOptions(_effectiveOptions);
     _enable = ValueNotifier(_controller.isActive);
     _previousActive = _controller.isActive;
     _previousSelection = Set.from(_controller.selection);
