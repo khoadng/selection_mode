@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'controller.dart';
-import 'selection_mode.dart';
+import 'selection_consumer.dart';
 
 class SelectionStatusBar extends StatelessWidget {
   const SelectionStatusBar({
@@ -24,16 +24,13 @@ class SelectionStatusBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ctrl = SelectionMode.of(context);
-
-    return ListenableBuilder(
-      listenable: ctrl,
-      builder: (context, _) {
-        if (!ctrl.isActive) {
+    return SelectionConsumer(
+      builder: (context, controller, _) {
+        if (!controller.isActive) {
           return const SizedBox.shrink();
         }
 
-        final content = _buildContent(context, ctrl);
+        final content = _buildContent(context, controller);
 
         if (!animated) return content;
 

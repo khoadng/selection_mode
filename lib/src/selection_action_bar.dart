@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'selection_mode.dart';
+import 'selection_consumer.dart';
 
 class SelectionActionBar extends StatelessWidget {
   const SelectionActionBar({
@@ -36,11 +36,8 @@ class SelectionActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = SelectionMode.of(context);
-
-    return ListenableBuilder(
-      listenable: controller,
-      builder: (context, _) {
+    return SelectionConsumer(
+      builder: (context, controller, _) {
         if (!controller.isActive || children.isEmpty) {
           return const SizedBox.shrink();
         }

@@ -49,7 +49,6 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
       controller: _controller,
       child: Scaffold(
         appBar: MaterialSelectionAppBar(
-          controller: _controller,
           actions: [
             IconButton(
               icon: const Icon(Icons.info),
@@ -353,12 +352,9 @@ class _SelectionAwareBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ctrl = controller ?? SelectionMode.of(context);
-
-    return ListenableBuilder(
-      listenable: ctrl,
-      builder: (context, _) {
-        final isHidden = ctrl.isActive;
+    return SelectionConsumer(
+      builder: (context, controller, _) {
+        final isHidden = controller.isActive;
         return isHidden ? const SizedBox.shrink() : _buildNav();
       },
     );
@@ -434,7 +430,7 @@ class _SelectableItemState extends State<SelectableItem>
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: widget.onTap,
-      child: SelectionBuilder(
+      child: SelectableBuilder(
         key: widget.key,
         index: widget.index,
         builder: (context, isSelected) {

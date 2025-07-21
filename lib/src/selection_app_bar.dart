@@ -1,51 +1,12 @@
 import 'package:flutter/material.dart';
 import 'controller.dart';
-import 'selection_mode.dart';
-
-/// Generic builder for app bars that respond to selection mode state.
-///
-/// Provides maximum flexibility by allowing any PreferredSizeWidget to be returned
-/// for both normal and selection modes.
-class SelectionAppBarBuilder extends StatelessWidget
-    implements PreferredSizeWidget {
-  const SelectionAppBarBuilder({
-    super.key,
-    this.controller,
-    required this.builder,
-    this.preferredSize = const Size.fromHeight(kToolbarHeight),
-  });
-
-  /// The selection controller. If null, uses [SelectionMode.of(context)]
-  final SelectionModeController? controller;
-
-  /// Builder that receives selection state and should return a PreferredSizeWidget
-  final PreferredSizeWidget Function(
-    BuildContext context,
-    SelectionModeController controller,
-    bool isSelectionMode,
-  ) builder;
-
-  /// The preferred size for this app bar
-  @override
-  final Size preferredSize;
-
-  @override
-  Widget build(BuildContext context) {
-    final ctrl = controller ?? SelectionMode.of(context);
-
-    return ListenableBuilder(
-      listenable: ctrl,
-      builder: (context, _) => builder(context, ctrl, ctrl.isActive),
-    );
-  }
-}
+import 'selection_consumer.dart';
 
 /// Material Design app bar that adapts to selection mode.
 class MaterialSelectionAppBar extends StatelessWidget
     implements PreferredSizeWidget {
   const MaterialSelectionAppBar({
     super.key,
-    this.controller,
     required this.child,
     this.selectionTitle,
     this.actions,
@@ -55,9 +16,6 @@ class MaterialSelectionAppBar extends StatelessWidget
     this.selectionElevation,
     this.centerTitle,
   });
-
-  /// The selection controller. If null, uses [SelectionMode.of(context)]
-  final SelectionModeController? controller;
 
   /// The app bar to show when not in selection mode
   final AppBar child;
@@ -86,28 +44,26 @@ class MaterialSelectionAppBar extends StatelessWidget
 
   @override
   Widget build(BuildContext context) {
-    final ctrl = controller ?? SelectionMode.of(context);
-
-    return ListenableBuilder(
-      listenable: ctrl,
-      builder: (context, _) =>
-          ctrl.isActive ? _buildSelectionAppBar(context, ctrl) : child,
+    return SelectionConsumer(
+      builder: (context, controller, _) => controller.isActive
+          ? _buildSelectionAppBar(context, controller)
+          : child,
     );
   }
 
   Widget _buildSelectionAppBar(
     BuildContext context,
-    SelectionModeController ctrl,
+    SelectionModeController controller,
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return AppBar(
-      title: selectionTitle?.call(context, ctrl.selection.length) ??
-          Text('${ctrl.selection.length} selected'),
+      title: selectionTitle?.call(context, controller.selection.length) ??
+          Text('${controller.selection.length} selected'),
       leading: IconButton(
         icon: const Icon(Icons.close),
-        onPressed: onCancel ?? ctrl.disable,
+        onPressed: onCancel ?? controller.disable,
       ),
       actions: actions,
       backgroundColor:

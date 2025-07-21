@@ -33,7 +33,6 @@ class _PhotoGridState extends State<PhotoGrid> {
       scrollController: _scrollController, // For auto-scroll during drag
       child: Scaffold(
         appBar: MaterialSelectionAppBar(
-          controller: _controller,
           actions: [
             IconButton(
               icon: const Icon(Icons.share),
@@ -50,7 +49,7 @@ class _PhotoGridState extends State<PhotoGrid> {
         ),
         body: GridView.builder(
           controller: _scrollController,
-          itemBuilder: (context, index) => SelectionBuilder(
+          itemBuilder: (context, index) => SelectableBuilder(
             key: ValueKey(photos[index].id), // Stable selection with ValueKey
             index: index,
             isSelectable: photos[index].canSelect,
@@ -76,8 +75,8 @@ SelectionMode(
   child: Stack(
     children: [
       GridView.builder(
-        // Wrap with SelectionBuilder for each item to handle selection
-        itemBuilder: (context, index) => SelectionBuilder(
+        // Wrap with SelectableBuilder for each item to handle selection
+        itemBuilder: (context, index) => SelectableBuilder(
           index: index,
           builder: (context, isSelected) => GestureDetector(
             onTap: () => _controller.toggleItem(index),
@@ -90,9 +89,8 @@ SelectionMode(
       ),
 
       // Custom selection status + selection controls
-      ListenableBuilder(
-        listenable: _controller,
-        builder: (context, _) => controller.isActive ? Positioned(
+      SelectionConsumer(
+        builder: (context, controller, _) => controller.isActive ? Positioned(
           top: 20, left: 20,
           child: ActionChip(
             label: Text('${_controller.selection.length} selected'),
@@ -102,9 +100,8 @@ SelectionMode(
       ),
 
       // Custom selection controls
-      ListenableBuilder(
-        listenable: _controller,
-        builder: (context, _) => controller.isActive ? Positioned(
+      SelectionBuilder(
+        builder: (context, controller, _) => controller.isActive ? Positioned(
           bottom: 20,
           child: Row(
             children: [
@@ -126,14 +123,14 @@ SelectionMode(
 
 ```dart
 // With ValueKey - for dynamic data that may reorder/change
-SelectionBuilder(
+SelectableBuilder(
   key: ValueKey(item.id), // Selection persists when list changes
   index: index,
   builder: (context, isSelected) => ItemWidget(item: item),
 )
 
 // Without ValueKey - for static data
-SelectionBuilder(
+SelectableBuilder(
   index: index, // Works fine if data doesn't change
   builder: (context, isSelected) => ItemWidget(item: item),
 )

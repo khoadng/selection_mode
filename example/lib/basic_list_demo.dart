@@ -34,7 +34,6 @@ class _BasicListDemoState extends State<BasicListDemo> {
       },
       child: Scaffold(
         appBar: MaterialSelectionAppBar(
-          controller: _controller,
           actions: [
             IconButton(
               icon: const Icon(Icons.share),
@@ -122,7 +121,7 @@ class SelectableListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SelectionBuilder(
+    return SelectableBuilder(
       index: index,
       builder: (context, isSelected) {
         final inSelectionMode = SelectionMode.of(context).isActive;

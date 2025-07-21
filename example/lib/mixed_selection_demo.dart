@@ -68,7 +68,6 @@ class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
       ),
       child: Scaffold(
         appBar: MaterialSelectionAppBar(
-          controller: _controller,
           child: AppBar(
             title: const Text('Implicit Selection Demo'),
             actions: [
@@ -84,7 +83,7 @@ class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
           children: [
             Column(
               children: [
-                _BehaviorIndicator(controller: _controller),
+                const _BehaviorIndicator(),
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.only(top: 8, bottom: 80),
@@ -134,7 +133,7 @@ class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
   Widget _buildItemWidget(ListItem item, int index) {
     return GestureDetector(
       onTap: () => _handleItemTap(index),
-      child: SelectionBuilder(
+      child: SelectableBuilder(
         index: index,
         isSelectable: item.isSelectable,
         builder: (context, isSelected) => switch (item.runtimeType) {
@@ -270,15 +269,12 @@ class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
 }
 
 class _BehaviorIndicator extends StatelessWidget {
-  const _BehaviorIndicator({required this.controller});
-
-  final SelectionModeController controller;
+  const _BehaviorIndicator();
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: controller,
-      builder: (context, child) {
+    return SelectionConsumer(
+      builder: (context, controller, child) {
         final isEnabled = controller.isActive;
         final hasSelection = controller.selection.isNotEmpty;
 

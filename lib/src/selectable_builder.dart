@@ -5,8 +5,8 @@ import 'package:selection_mode/selection_mode.dart';
 /// A builder widget that provides selection state and gestures for an indexed item.
 ///
 /// Combines selection state management with gesture handling in a single widget.
-class SelectionBuilder extends StatefulWidget {
-  const SelectionBuilder({
+class SelectableBuilder extends StatefulWidget {
+  const SelectableBuilder({
     super.key,
     required this.index,
     required this.builder,
@@ -26,10 +26,10 @@ class SelectionBuilder extends StatefulWidget {
   final bool isSelectable;
 
   @override
-  State<SelectionBuilder> createState() => _SelectionBuilderState();
+  State<SelectableBuilder> createState() => _SelectableBuilderState();
 }
 
-class _SelectionBuilderState extends State<SelectionBuilder> {
+class _SelectableBuilderState extends State<SelectableBuilder> {
   SelectionModeController? _controller;
 
   /// Extract identifier from key, fallback to index
@@ -56,7 +56,7 @@ class _SelectionBuilderState extends State<SelectionBuilder> {
   }
 
   @override
-  void didUpdateWidget(SelectionBuilder oldWidget) {
+  void didUpdateWidget(SelectableBuilder oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     final oldIdentifier = oldWidget.key is ValueKey

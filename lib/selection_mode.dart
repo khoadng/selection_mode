@@ -1,6 +1,6 @@
 export 'src/controller.dart';
 export 'src/selection_mode.dart';
-export 'src/selection_builder.dart';
+export 'src/selectable_builder.dart';
 export 'src/selection_app_bar.dart';
 export 'src/selection_constraints.dart';
 export 'src/selection_options.dart';
@@ -9,3 +9,4 @@ export 'src/selection_action_bar.dart';
 export 'src/selection_status_bar.dart';
 export 'src/selection_query.dart';
 export 'src/auto_scroll_options.dart';
+export 'src/selection_consumer.dart';
