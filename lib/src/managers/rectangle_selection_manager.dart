@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'selection_constraints.dart';
+import '../options/selection_constraints.dart';
 
 /// Result of a rectangle selection operation
 class RectangleSelectionResult {

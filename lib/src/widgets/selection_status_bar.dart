@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'controller.dart';
+import '../core/controller.dart';
 import 'selection_consumer.dart';
 
 class SelectionStatusBar extends StatelessWidget {

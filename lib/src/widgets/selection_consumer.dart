@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'controller.dart';
-import 'selection_mode.dart';
+import '../core/controller.dart';
+import '../core/selection_mode.dart';
 
 /// A widget that provides selection state
 class SelectionConsumer extends StatelessWidget {

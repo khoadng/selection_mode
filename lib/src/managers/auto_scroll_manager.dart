@@ -1,7 +1,7 @@
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
-import 'auto_scroll_options.dart';
+import '../options/auto_scroll_options.dart';
 
 enum ScrollDirection { up, down, none }
 

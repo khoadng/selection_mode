@@ -1,4 +1,4 @@
-import 'controller.dart';
+import '../core/controller.dart';
 
 /// A fluent query builder for working with selected items in a clean, composable way.
 ///

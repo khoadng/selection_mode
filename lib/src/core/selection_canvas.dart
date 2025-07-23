@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'controller.dart';
-import 'selection_consumer.dart';
+import '../widgets/selection_consumer.dart';
 import 'selection_mode.dart';
-import 'selection_options.dart';
+import '../options/selection_options.dart';
 
 /// A widget that provides gesture handling for selection mode interactions.
 ///

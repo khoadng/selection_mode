@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'haptic_feedback.dart';
-import 'selection_options.dart';
-import 'auto_scroll_manager.dart';
-import 'range_manager.dart';
-import 'selectability_manager.dart';
-import 'drag_selection_manager.dart';
-import 'rectangle_selection_manager.dart';
-import 'selection_state_manager.dart';
+import '../options/haptic_feedback.dart';
+import '../options/selection_options.dart';
+import '../managers/auto_scroll_manager.dart';
+import '../managers/range_manager.dart';
+import '../managers/selectability_manager.dart';
+import '../managers/drag_selection_manager.dart';
+import '../managers/rectangle_selection_manager.dart';
+import '../managers/selection_state_manager.dart';
 
 class SelectionModeController extends ChangeNotifier {
   SelectionModeController({
