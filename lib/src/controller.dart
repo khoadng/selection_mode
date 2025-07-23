@@ -477,7 +477,6 @@ class SelectionModeController extends ChangeNotifier {
     _checkAutoDisable();
   }
 
-  // Rectangle selection methods
   void startRectangleSelection(Offset position) {
     if (_shouldBlockManualSelection()) return;
 
@@ -491,7 +490,7 @@ class SelectionModeController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateRectangleSelection(Offset position, {bool isToggleMode = false}) {
+  void updateRectangleSelection(Offset position) {
     if (!_rectangleManager.isSelectionInProgress) return;
 
     _rectangleManager.updateSelection(position);
@@ -500,7 +499,6 @@ class SelectionModeController extends ChangeNotifier {
       positionCallbacks,
       _selectabilityManager.isSelectable,
       _options.constraints,
-      isToggleMode: isToggleMode,
     );
 
     // Update selection

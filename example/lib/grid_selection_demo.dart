@@ -127,8 +127,6 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
         body: Stack(
           children: [
             SelectionCanvas(
-              enableRectangleSelection: _rectangleSelectionEnabled,
-              isToggleMode: false,
               child: _buildGrid(),
             ),
             if (_rectangleSelectionEnabled) SelectionRectangleOverlay(),

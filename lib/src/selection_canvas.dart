@@ -4,32 +4,63 @@ import 'selection_consumer.dart';
 import 'selection_mode.dart';
 import 'selection_options.dart';
 
-/// Interactive canvas for selection mode gestures.
+/// A widget that provides gesture handling for selection mode interactions.
 ///
-/// - Tap on canvas → exit selection mode (standard UX)
-/// - Drag on canvas → rectangle selection (if enabled)
-/// - Hit selectable item → pass through to existing drag selection
+/// [SelectionCanvas] acts as an interactive overlay that captures gestures
+/// for selection operations while allowing child widgets to receive their
+/// normal gesture events. It must be used within a [SelectionMode] widget
+/// to function properly.
+///
+/// ## Gesture Handling
+///
+/// The canvas handles the following gestures when selection mode is active:
+///
+/// * **Tap on empty area**: Exits selection mode (calls [onBackgroundTap] or
+///   [SelectionModeController.disable] by default)
+/// * **Drag on empty area**: Initiates rectangle selection if enabled via
+///   [SelectionOptions.rectangleSelection]
+/// * **Gestures on selectable items**: Passed through to child widgets for
+///   normal item-to-item drag selection
+///
+/// Rectangle selection is only available when [SelectionOptions.rectangleSelection]
+/// is configured in the parent [SelectionMode] widget.
+///
+/// ## Usage
+///
+/// Wrap your scrollable widget or list with [SelectionCanvas]:
+///
+/// ```dart
+/// SelectionCanvas(
+///   child: ListView.builder(
+///     itemBuilder: (context, index) => SelectableBuilder(
+///       index: index,
+///       builder: (context, isSelected) => ListTile(...),
+///     ),
+///   ),
+/// )
+/// ```
+///
+/// See also:
+///
+/// * [SelectionMode], which provides the selection controller and options
+/// * [SelectableBuilder], for making individual items selectable
+/// * [SelectionRectangleOverlay], for displaying rectangle selection feedback
 class SelectionCanvas extends StatefulWidget {
   const SelectionCanvas({
     super.key,
     required this.child,
-    this.enableRectangleSelection = false,
-    this.isToggleMode = false,
     this.onBackgroundTap,
+    this.hitTestBehavior = HitTestBehavior.translucent,
   });
 
   final Widget child;
 
-  /// Enable rectangle selection via drag gestures on background
-  final bool enableRectangleSelection;
-
-  /// If true, rectangle selection toggles items (add unselected, remove selected).
-  /// If false, rectangle selection replaces current selection.
-  final bool isToggleMode;
-
   /// Called when canvas is tapped while selection mode is active.
   /// If null, defaults to disabling selection mode.
   final VoidCallback? onBackgroundTap;
+
+  /// How to behave during hit testing
+  final HitTestBehavior hitTestBehavior;
 
   @override
   State<SelectionCanvas> createState() => _SelectionCanvasState();
@@ -51,7 +82,7 @@ class _SelectionCanvasState extends State<SelectionCanvas> {
           onTap: controller.isActive
               ? (widget.onBackgroundTap ?? controller.disable)
               : null,
-          behavior: HitTestBehavior.translucent,
+          behavior: widget.hitTestBehavior,
           child: widget.child,
         ),
       ),
@@ -73,18 +104,18 @@ class _SelectionCanvasState extends State<SelectionCanvas> {
     // Pass through if hitting selectable items
     if (_hitTestSelectableItem(event.localPosition)) return;
 
-    // Only handle rectangle selection if enabled
-    if (!widget.enableRectangleSelection) return;
-
     final controller = SelectionMode.of(context);
+
+    // Only handle rectangle selection if enabled via options
+    if (controller.options.rectangleSelection == null) return;
 
     // Auto-enable selection mode if configured
     if (!controller.isActive && _shouldAutoEnable(controller)) {
       controller.enable();
     }
 
-    // Only start if selection mode is active and rectangle selection is configured
-    if (controller.isActive && controller.options.rectangleSelection != null) {
+    // Only start if selection mode is active
+    if (controller.isActive) {
       controller.startRectangleSelection(event.localPosition);
       setState(() {
         _isDragging = true;
@@ -104,10 +135,7 @@ class _SelectionCanvasState extends State<SelectionCanvas> {
 
     // Handle rectangle selection
     if (_isDragging && _startPosition != null) {
-      controller.updateRectangleSelection(
-        event.localPosition,
-        isToggleMode: widget.isToggleMode,
-      );
+      controller.updateRectangleSelection(event.localPosition);
     }
   }
 

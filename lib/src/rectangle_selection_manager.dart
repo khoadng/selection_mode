@@ -53,10 +53,10 @@ class RectangleSelectionManager {
 
   /// Calculate items that intersect with current rectangle
   RectangleSelectionResult calculateSelection(
-      Map<int, Rect? Function()> positionCallbacks,
-      bool Function(int) isSelectable,
-      SelectionConstraints? constraints,
-      {bool isToggleMode = false}) {
+    Map<int, Rect? Function()> positionCallbacks,
+    bool Function(int) isSelectable,
+    SelectionConstraints? constraints,
+  ) {
     if (!_isSelectionInProgress || selectionRect == null) {
       return RectangleSelectionResult(
         newSelection: _preSelectionState,
@@ -83,49 +83,23 @@ class RectangleSelectionManager {
       }
     }
 
-    Set<int> newSelection;
-    Set<int> addedItems;
-    Set<int> removedItems;
+    // Replace mode: replace selection with intersecting items
+    final newSelection = Set<int>.from(_preSelectionState);
 
-    if (isToggleMode) {
-      // Toggle mode: add unselected, remove selected
-      newSelection = Set<int>.from(_preSelectionState);
-
-      for (final item in intersectingItems) {
-        if (_preSelectionState.contains(item)) {
-          newSelection.remove(item);
+    for (final item in intersectingItems) {
+      if (!newSelection.contains(item)) {
+        final canAdd = constraints?.canAddToSelection(newSelection) ?? true;
+        if (canAdd) {
+          newSelection.add(item);
         } else {
-          final canAdd = constraints?.canAddToSelection(newSelection) ?? true;
-          if (canAdd) {
-            newSelection.add(item);
-          } else {
-            hitLimit = true;
-            break;
-          }
+          hitLimit = true;
+          break;
         }
       }
-
-      addedItems = newSelection.difference(_preSelectionState);
-      removedItems = _preSelectionState.difference(newSelection);
-    } else {
-      // Replace mode: replace selection with intersecting items
-      newSelection = Set<int>.from(_preSelectionState);
-
-      for (final item in intersectingItems) {
-        if (!newSelection.contains(item)) {
-          final canAdd = constraints?.canAddToSelection(newSelection) ?? true;
-          if (canAdd) {
-            newSelection.add(item);
-          } else {
-            hitLimit = true;
-            break;
-          }
-        }
-      }
-
-      addedItems = intersectingItems.difference(_preSelectionState);
-      removedItems = {};
     }
+
+    final addedItems = intersectingItems.difference(_preSelectionState);
+    final removedItems = <int>{};
 
     return RectangleSelectionResult(
       newSelection: newSelection,
