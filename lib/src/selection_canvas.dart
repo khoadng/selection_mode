@@ -133,8 +133,15 @@ class _SelectionCanvasState extends State<SelectionCanvas> {
       return;
     }
 
-    // Handle rectangle selection
     if (_isDragging && _startPosition != null) {
+      final autoScrollManager = controller.autoScrollManager;
+      if (autoScrollManager != null) {
+        final viewportSize = autoScrollManager.getViewportSize();
+        if (viewportSize != null) {
+          autoScrollManager.handleDragUpdate(event.position, viewportSize);
+        }
+      }
+
       controller.updateRectangleSelection(event.localPosition);
     }
   }
