@@ -68,15 +68,17 @@ class _BasicListDemoState extends State<BasicListDemo> {
             ],
           ),
         ),
-        body: ListView.builder(
-          controller: _scrollController,
-          padding: const EdgeInsets.only(bottom: 0),
-          itemCount: _items.length,
-          itemBuilder: (context, index) => SelectableListTile(
-            index: index,
-            onTap: () => _handleItemTap(index),
-            title: _items[index],
-            subtitle: 'Subtitle for item $index',
+        body: SelectionCanvas(
+          child: ListView.builder(
+            controller: _scrollController,
+            padding: const EdgeInsets.only(bottom: 0),
+            itemCount: _items.length,
+            itemBuilder: (context, index) => SelectableListTile(
+              index: index,
+              onTap: () => _handleItemTap(index),
+              title: _items[index],
+              subtitle: 'Subtitle for item $index',
+            ),
           ),
         ),
       ),

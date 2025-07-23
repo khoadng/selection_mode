@@ -53,7 +53,7 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
             ? RectangleSelectionOptions(
                 strokeWidth: 1.0,
                 strokeColor: Colors.blue,
-                fillColor: Colors.blue.withOpacity(0.1),
+                fillColor: Colors.blue.withValues(alpha: 0.2),
               )
             : null,
       ),
@@ -126,24 +126,10 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
         ),
         body: Stack(
           children: [
-            GridView.builder(
-              controller: _scrollController,
-              padding: _rectangleSelectionEnabled
-                  ? const EdgeInsets.symmetric(vertical: 16, horizontal: 32)
-                  : const EdgeInsets.all(8),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: _rectangleSelectionEnabled ? 4 : 3,
-                crossAxisSpacing: _rectangleSelectionEnabled ? 24 : 4,
-                mainAxisSpacing: _rectangleSelectionEnabled ? 24 : 4,
-              ),
-              itemCount: visiblePhotos.length,
-              itemBuilder: (context, index) => SelectableItem(
-                key: ValueKey(visiblePhotos[index].id),
-                index: index,
-                onTap: () => _handlePhotoTap(index),
-                itemBuilder: (context, index) =>
-                    _PhotoTile(photo: visiblePhotos[index]),
-              ),
+            SelectionCanvas(
+              enableRectangleSelection: _rectangleSelectionEnabled,
+              isToggleMode: false,
+              child: _buildGrid(),
             ),
             if (_rectangleSelectionEnabled) SelectionRectangleOverlay(),
             if (!_rectangleSelectionEnabled)
@@ -182,6 +168,30 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
           currentIndex: _currentNavIndex,
           onTap: (index) => setState(() => _currentNavIndex = index),
         ),
+      ),
+    );
+  }
+
+  Widget _buildGrid() {
+    final visiblePhotos = _visiblePhotos;
+
+    return GridView.builder(
+      controller: _scrollController,
+      padding: _rectangleSelectionEnabled
+          ? const EdgeInsets.symmetric(vertical: 16, horizontal: 32)
+          : const EdgeInsets.all(8),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: _rectangleSelectionEnabled ? 4 : 3,
+        crossAxisSpacing: _rectangleSelectionEnabled ? 24 : 4,
+        mainAxisSpacing: _rectangleSelectionEnabled ? 24 : 4,
+      ),
+      itemCount: visiblePhotos.length,
+      itemBuilder: (context, index) => SelectableItem(
+        key: ValueKey(visiblePhotos[index].id),
+        index: index,
+        onTap: () => _handlePhotoTap(index),
+        itemBuilder: (context, index) =>
+            _PhotoTile(photo: visiblePhotos[index]),
       ),
     );
   }

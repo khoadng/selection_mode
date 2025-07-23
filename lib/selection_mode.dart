@@ -13,3 +13,4 @@ export 'src/selection_consumer.dart';
 export 'src/drag_selection_ignore.dart';
 export 'src/selection_rectangle_overlay.dart';
 export 'src/rectangle_selection_options.dart';
+export 'src/selection_canvas.dart';
