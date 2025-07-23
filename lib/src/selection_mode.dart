@@ -135,6 +135,12 @@ class _SelectionModeState extends State<SelectionMode> {
     }
   }
 
+  void _handlePointerMove(PointerMoveEvent event) {
+    if (!_controller.isDragInProgress) return;
+
+    _controller.handleDragUpdate(event.position);
+  }
+
   @override
   Widget build(BuildContext context) {
     return _SelectionModeScope(
@@ -149,6 +155,7 @@ class _SelectionModeState extends State<SelectionMode> {
             }
           },
           child: Listener(
+            onPointerMove: enabled ? _handlePointerMove : null,
             onPointerUp: enabled
                 ? (event) {
                     if (_controller.isDragInProgress) {

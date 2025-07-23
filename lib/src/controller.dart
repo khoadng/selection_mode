@@ -33,6 +33,9 @@ class SelectionModeController extends ChangeNotifier {
   late final RangeManager _rangeManager;
   AutoScrollManager? _autoScrollManager;
 
+  Offset? _currentDragPosition;
+  final Map<int, Rect? Function()> _positionCallbacks = {};
+
   bool get isActive => _enabled;
 
   Set<int> get selection {
@@ -77,6 +80,14 @@ class SelectionModeController extends ChangeNotifier {
     _checkAutoDisable();
   }
 
+  void registerPositionCallback(int index, Rect? Function() callback) {
+    _positionCallbacks[index] = callback;
+  }
+
+  void unregisterPositionCallback(int index) {
+    _positionCallbacks.remove(index);
+  }
+
   Object _getIdentifier(int index) {
     return _indexToIdentifier[index] ?? index;
   }
@@ -84,6 +95,9 @@ class SelectionModeController extends ChangeNotifier {
   void setAutoScrollManager(AutoScrollManager? manager) {
     _autoScrollManager?.dispose();
     _autoScrollManager = manager;
+    if (manager != null) {
+      manager.onScrollUpdate = _onAutoScrollUpdate;
+    }
   }
 
   void _applyOptions(SelectionOptions options) {
@@ -151,7 +165,8 @@ class SelectionModeController extends ChangeNotifier {
     }
     _rangeManager.clearAnchor();
     _dragManager.endDrag();
-    _autoScrollManager?.stopAutoScroll();
+    _autoScrollManager?.stopDragAutoScroll();
+    _currentDragPosition = null;
     notifyListeners();
   }
 
@@ -163,7 +178,8 @@ class SelectionModeController extends ChangeNotifier {
       _triggerHaptic(HapticEvent.modeDisabled);
       _rangeManager.clearAnchor();
       _dragManager.endDrag();
-      _autoScrollManager?.stopAutoScroll();
+      _autoScrollManager?.stopDragAutoScroll();
+      _currentDragPosition = null;
     }
     notifyListeners();
   }
@@ -364,6 +380,7 @@ class SelectionModeController extends ChangeNotifier {
 
     _dragManager.startDrag(index, selection);
     _rangeManager.setAnchor(index);
+    _autoScrollManager?.startDragAutoScroll();
     _triggerHaptic(HapticEvent.dragStart);
 
     if (!isSelected(index)) {
@@ -382,10 +399,18 @@ class SelectionModeController extends ChangeNotifier {
     }
   }
 
-  void handleDragUpdate(Offset globalPosition, Size viewportSize) {
+  void handleDragUpdate(Offset globalPosition) {
     if (!_dragManager.isDragInProgress) return;
 
-    _autoScrollManager?.handleDragUpdate(globalPosition, viewportSize);
+    _currentDragPosition = globalPosition;
+    final autoScrollManager = _autoScrollManager;
+
+    if (autoScrollManager != null) {
+      final viewportSize = autoScrollManager.getViewportSize();
+      if (viewportSize != null) {
+        autoScrollManager.handleDragUpdate(globalPosition, viewportSize);
+      }
+    }
   }
 
   void handleDragOver(int index) {
@@ -436,8 +461,28 @@ class SelectionModeController extends ChangeNotifier {
 
   void endRangeSelection() {
     _dragManager.endDrag();
-    _autoScrollManager?.stopAutoScroll();
+    _autoScrollManager?.stopDragAutoScroll();
+    _currentDragPosition = null;
     _checkAutoDisable();
+  }
+
+  void _onAutoScrollUpdate() {
+    if (_dragManager.isDragInProgress) {
+      if (_currentDragPosition case final Offset position) {
+        // This is needed to manually trigger drag-over events during auto-scroll when the viewport scrolls but the pointer does not move.
+        _checkItemUnderPointer(position);
+      }
+    }
+  }
+
+  void _checkItemUnderPointer(Offset position) {
+    for (final entry in _positionCallbacks.entries) {
+      final rect = entry.value();
+      if (rect != null && rect.contains(position)) {
+        handleDragOver(entry.key);
+        return;
+      }
+    }
   }
 
   void deselectAll() {
@@ -529,7 +574,8 @@ class SelectionModeController extends ChangeNotifier {
       _triggerHaptic(HapticEvent.modeDisabled);
       _rangeManager.clearAnchor();
       _dragManager.endDrag();
-      _autoScrollManager?.stopAutoScroll();
+      _autoScrollManager?.stopDragAutoScroll();
+      _currentDragPosition = null;
     }
   }
 
@@ -544,6 +590,7 @@ class SelectionModeController extends ChangeNotifier {
     _indexToIdentifier.clear();
     _selectabilityManager.clear();
     _selectedIdentifiers.clear();
+    _positionCallbacks.clear();
   }
 
   @override

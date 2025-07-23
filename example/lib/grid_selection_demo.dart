@@ -12,7 +12,7 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
   final _controller = SelectionModeController();
   final _scrollController = ScrollController();
   final _allPhotos = List.generate(
-    60,
+    100,
     (index) => Photo(
       id: index + 100,
       title: 'Photo ${index + 1}',
@@ -123,26 +123,28 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
               left: 24,
               right: 24,
               bottom: 36,
-              child: SelectionActionBar(
-                spacing: 16,
-                borderRadius: BorderRadius.circular(20),
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.list),
-                    tooltip: 'Show Selected',
-                    onPressed: _showSelectedDialog,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.share),
-                    tooltip: 'Share Selected',
-                    onPressed: _controller.isActive ? _shareSelected : null,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    tooltip: 'Delete Selected',
-                    onPressed: _controller.isActive ? _deletePhotos : null,
-                  ),
-                ],
+              child: DragSelectionIgnore(
+                child: SelectionActionBar(
+                  spacing: 16,
+                  borderRadius: BorderRadius.circular(20),
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.list),
+                      tooltip: 'Show Selected',
+                      onPressed: _showSelectedDialog,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.share),
+                      tooltip: 'Share Selected',
+                      onPressed: _controller.isActive ? _shareSelected : null,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      tooltip: 'Delete Selected',
+                      onPressed: _controller.isActive ? _deletePhotos : null,
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

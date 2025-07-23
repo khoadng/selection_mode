@@ -10,3 +10,4 @@ export 'src/selection_status_bar.dart';
 export 'src/selection_query.dart';
 export 'src/auto_scroll_options.dart';
 export 'src/selection_consumer.dart';
+export 'src/drag_selection_ignore.dart';

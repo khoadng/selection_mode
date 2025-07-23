@@ -15,17 +15,41 @@ class AutoScrollManager {
   final ScrollController scrollController;
   final SelectionAutoScrollOptions config;
 
-  Ticker? _ticker;
-  ScrollDirection _currentDirection = ScrollDirection.none;
-  double _currentSpeed = 0.0;
+  VoidCallback? onScrollUpdate;
 
-  /// Handle drag update and determine if auto-scroll should trigger
+  Ticker? _ticker;
+  ScrollDirection _direction = ScrollDirection.none;
+  double _speed = 0.0;
+
+  bool get isScrolling =>
+      _ticker?.isActive == true && _direction != ScrollDirection.none;
+
+  Size? getViewportSize() {
+    if (!scrollController.hasClients) return null;
+    final context = scrollController.position.context.storageContext;
+    final renderBox = context.findRenderObject() as RenderBox?;
+    return renderBox?.size;
+  }
+
+  /// Start auto-scroll session for drag operation
+  void startDragAutoScroll() {
+    _ticker?.dispose();
+    _ticker = Ticker(_performScroll)..start();
+  }
+
+  /// Update scroll parameters during drag
+  void updateScrollParams(ScrollDirection direction, double speed) {
+    _direction = direction;
+    _speed = speed;
+  }
+
+  /// Handle drag update and determine scroll parameters
   void handleDragUpdate(Offset globalPosition, Size viewportSize) {
     if (!scrollController.hasClients) return;
 
     if (globalPosition.dy < -config.edgeThreshold ||
         globalPosition.dy > viewportSize.height + config.edgeThreshold) {
-      stopAutoScroll();
+      updateScrollParams(ScrollDirection.none, 0.0);
       return;
     }
 
@@ -36,62 +60,31 @@ class AutoScrollManager {
       direction,
     );
 
-    if (direction != _currentDirection || speed != _currentSpeed) {
-      _updateAutoScroll(direction, speed);
-    }
+    updateScrollParams(direction, speed);
   }
 
-  /// Start auto-scrolling in the specified direction
-  void startAutoScroll(ScrollDirection direction, double speed) {
-    if (direction == ScrollDirection.none || speed <= 0) {
-      stopAutoScroll();
-      return;
-    }
-
-    _updateAutoScroll(direction, speed);
-  }
-
-  /// Stop auto-scrolling
-  void stopAutoScroll() {
+  /// Stop auto-scroll session
+  void stopDragAutoScroll() {
     _ticker?.dispose();
     _ticker = null;
-    _currentDirection = ScrollDirection.none;
-    _currentSpeed = 0.0;
+    _direction = ScrollDirection.none;
+    _speed = 0.0;
   }
 
-  void _updateAutoScroll(ScrollDirection direction, double speed) {
-    if (direction == ScrollDirection.none || speed <= 0) {
-      stopAutoScroll();
-      return;
-    }
+  void _performScroll(Duration elapsed) {
+    if (_direction == ScrollDirection.none || _speed <= 0) return;
 
-    if (_currentDirection == direction && _currentSpeed == speed) {
-      return; // No change needed
-    }
-
-    _currentDirection = direction;
-    _currentSpeed = speed;
-
-    _ticker?.dispose();
-    _ticker = Ticker((_) => _performScroll())..start();
-  }
-
-  void _performScroll() {
     if (!scrollController.hasClients) {
-      stopAutoScroll();
+      stopDragAutoScroll();
       return;
     }
 
-    if (_currentDirection == ScrollDirection.none) {
-      return; // No scrolling needed
-    }
-
-    final increment = _currentSpeed / 60; // Per-frame increment at 60fps
+    final increment = _speed / 60;
     final currentOffset = scrollController.offset;
     final maxOffset = scrollController.position.maxScrollExtent;
     final minOffset = scrollController.position.minScrollExtent;
 
-    final newOffset = switch (_currentDirection) {
+    final newOffset = switch (_direction) {
       ScrollDirection.up => (currentOffset - increment).clamp(
           minOffset,
           maxOffset,
@@ -105,8 +98,9 @@ class AutoScrollManager {
 
     if (newOffset != currentOffset) {
       scrollController.jumpTo(newOffset);
+      onScrollUpdate?.call();
     } else {
-      stopAutoScroll();
+      updateScrollParams(ScrollDirection.none, 0.0);
     }
   }
 
@@ -140,13 +134,10 @@ class AutoScrollManager {
     final proximity = (config.edgeThreshold -
             distanceFromEdge.clamp(0, config.edgeThreshold)) /
         config.edgeThreshold;
-    final speed = config.scrollSpeed * proximity.clamp(0.1, 1.0);
-
-    return speed;
+    return config.scrollSpeed * proximity.clamp(0.1, 1.0);
   }
 
-  /// Dispose resources
   void dispose() {
-    stopAutoScroll();
+    stopDragAutoScroll();
   }
 }

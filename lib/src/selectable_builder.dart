@@ -40,6 +40,21 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
     return widget.index;
   }
 
+  Rect? _getCurrentBounds() {
+    if (!mounted) return null;
+
+    final renderBox = context.findRenderObject() as RenderBox?;
+    if (renderBox == null || !renderBox.hasSize) return null;
+
+    final globalOffset = renderBox.localToGlobal(Offset.zero);
+    return Rect.fromLTWH(
+      globalOffset.dx,
+      globalOffset.dy,
+      renderBox.size.width,
+      renderBox.size.height,
+    );
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -51,6 +66,11 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
         widget.index,
         _getIdentifier(),
         widget.isSelectable,
+      );
+
+      controller.registerPositionCallback(
+        widget.index,
+        _getCurrentBounds,
       );
     }
   }
@@ -73,15 +93,18 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
         newIdentifier,
         widget.isSelectable,
       );
+
+      _controller?.registerPositionCallback(
+        widget.index,
+        _getCurrentBounds,
+      );
     }
   }
 
-  Size? _getViewportSize(BuildContext context) {
-    final scrollable = Scrollable.maybeOf(context);
-    if (scrollable == null) return null;
-
-    final renderBox = scrollable.context.findRenderObject() as RenderBox?;
-    return renderBox?.size;
+  @override
+  void dispose() {
+    _controller?.unregisterPositionCallback(widget.index);
+    super.dispose();
   }
 
   @override
@@ -135,16 +158,6 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
               data: widget.index,
               onDragStarted: () {
                 controller.startRangeSelection(widget.index);
-              },
-              onDragUpdate: (details) {
-                final viewportSize = _getViewportSize(context);
-                if (viewportSize != null) {
-                  controller.handleDragUpdate(
-                      details.globalPosition, viewportSize);
-                }
-              },
-              onDragEnd: (_) {
-                controller.endRangeSelection();
               },
               feedback: const SizedBox.shrink(),
               hapticFeedbackOnStart: false,
