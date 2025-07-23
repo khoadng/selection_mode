@@ -22,6 +22,7 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
   );
 
   bool _showHidden = false;
+  bool _rectangleSelectionEnabled = false;
   int _currentNavIndex = 0;
 
   List<Photo> get _visiblePhotos =>
@@ -47,6 +48,15 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
     return SelectionMode(
       scrollController: _scrollController,
       controller: _controller,
+      options: SelectionOptions(
+        rectangleSelection: _rectangleSelectionEnabled
+            ? RectangleSelectionOptions(
+                strokeWidth: 1.0,
+                strokeColor: Colors.blue,
+                fillColor: Colors.blue.withOpacity(0.1),
+              )
+            : null,
+      ),
       child: Scaffold(
         appBar: MaterialSelectionAppBar(
           actions: [
@@ -93,22 +103,38 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
               children: [
                 const Text('Grid Selection Demo'),
                 Text(
-                  'Showing ${visiblePhotos.length}/${_allPhotos.length} photos',
+                  'Showing ${visiblePhotos.length}/${_allPhotos.length} photos ${_rectangleSelectionEnabled ? "(Rectangle Mode)" : ""}',
                   style: const TextStyle(fontSize: 12),
                 ),
               ],
             ),
+            actions: [
+              IconButton(
+                icon: Icon(
+                  _rectangleSelectionEnabled
+                      ? Icons.crop_free
+                      : Icons.crop_free_outlined,
+                ),
+                tooltip: 'Toggle Rectangle Selection',
+                onPressed: () => setState(
+                  () =>
+                      _rectangleSelectionEnabled = !_rectangleSelectionEnabled,
+                ),
+              ),
+            ],
           ),
         ),
         body: Stack(
           children: [
             GridView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.all(8),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 4,
-                mainAxisSpacing: 4,
+              padding: _rectangleSelectionEnabled
+                  ? const EdgeInsets.symmetric(vertical: 16, horizontal: 32)
+                  : const EdgeInsets.all(8),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: _rectangleSelectionEnabled ? 4 : 3,
+                crossAxisSpacing: _rectangleSelectionEnabled ? 24 : 4,
+                mainAxisSpacing: _rectangleSelectionEnabled ? 24 : 4,
               ),
               itemCount: visiblePhotos.length,
               itemBuilder: (context, index) => SelectableItem(
@@ -119,34 +145,36 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
                     _PhotoTile(photo: visiblePhotos[index]),
               ),
             ),
-            Positioned(
-              left: 24,
-              right: 24,
-              bottom: 36,
-              child: DragSelectionIgnore(
-                child: SelectionActionBar(
-                  spacing: 16,
-                  borderRadius: BorderRadius.circular(20),
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.list),
-                      tooltip: 'Show Selected',
-                      onPressed: _showSelectedDialog,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.share),
-                      tooltip: 'Share Selected',
-                      onPressed: _controller.isActive ? _shareSelected : null,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      tooltip: 'Delete Selected',
-                      onPressed: _controller.isActive ? _deletePhotos : null,
-                    ),
-                  ],
+            if (_rectangleSelectionEnabled) SelectionRectangleOverlay(),
+            if (!_rectangleSelectionEnabled)
+              Positioned(
+                left: 24,
+                right: 24,
+                bottom: 36,
+                child: DragSelectionIgnore(
+                  child: SelectionActionBar(
+                    spacing: 16,
+                    borderRadius: BorderRadius.circular(20),
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.list),
+                        tooltip: 'Show Selected',
+                        onPressed: _showSelectedDialog,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.share),
+                        tooltip: 'Share Selected',
+                        onPressed: _controller.isActive ? _shareSelected : null,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        tooltip: 'Delete Selected',
+                        onPressed: _controller.isActive ? _deletePhotos : null,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
           ],
         ),
         bottomNavigationBar: _SelectionAwareBottomNav(

@@ -135,10 +135,51 @@ class _SelectionModeState extends State<SelectionMode> {
     }
   }
 
-  void _handlePointerMove(PointerMoveEvent event) {
-    if (!_controller.isDragInProgress) return;
+  bool _hitTestSelectableItem(Offset position) {
+    // Check if position hits any registered selectable item
+    for (final entry in _controller.positionCallbacks.entries) {
+      final rect = entry.value();
+      if (rect != null && rect.contains(position)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
-    _controller.handleDragUpdate(event.position);
+  void _handlePointerDown(PointerDownEvent event) {
+    // Item hit = existing drag selection logic
+    if (_hitTestSelectableItem(event.position)) return;
+
+    // Background hit + rectangle enabled = rectangle selection
+    if (_effectiveOptions.rectangleSelection != null) {
+      _controller.startRectangleSelection(event.position);
+    }
+  }
+
+  void _handlePointerMove(PointerMoveEvent event) {
+    if (_controller.isDragInProgress) {
+      _controller.handleDragUpdate(event.position);
+    } else if (_controller.isRectangleSelectionInProgress) {
+      // Determine if this should be toggle mode (e.g., holding Ctrl/Cmd)
+      // For now, default to replace mode
+      _controller.updateRectangleSelection(event.position);
+    }
+  }
+
+  void _handlePointerUp(PointerUpEvent event) {
+    if (_controller.isDragInProgress) {
+      _controller.endRangeSelection();
+    } else if (_controller.isRectangleSelectionInProgress) {
+      _controller.endRectangleSelection();
+    }
+  }
+
+  void _handlePointerCancel(PointerCancelEvent event) {
+    if (_controller.isDragInProgress) {
+      _controller.endRangeSelection();
+    } else if (_controller.isRectangleSelectionInProgress) {
+      _controller.cancelRectangleSelection();
+    }
   }
 
   @override
@@ -155,14 +196,12 @@ class _SelectionModeState extends State<SelectionMode> {
             }
           },
           child: Listener(
-            onPointerMove: enabled ? _handlePointerMove : null,
-            onPointerUp: enabled
-                ? (event) {
-                    if (_controller.isDragInProgress) {
-                      _controller.endRangeSelection();
-                    }
-                  }
+            onPointerDown: _effectiveOptions.rectangleSelection != null
+                ? _handlePointerDown
                 : null,
+            onPointerMove: enabled ? _handlePointerMove : null,
+            onPointerUp: enabled ? _handlePointerUp : null,
+            onPointerCancel: enabled ? _handlePointerCancel : null,
             child: widget.child,
           ),
         ),

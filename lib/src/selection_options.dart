@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import 'auto_scroll_options.dart';
 import 'haptic_feedback.dart';
+import 'rectangle_selection_options.dart';
 import 'selection_constraints.dart';
 
 /// Selection mode behavior patterns
@@ -36,6 +37,7 @@ class SelectionOptions {
     this.haptics = HapticFeedbackResolver.all,
     this.behavior = SelectionBehavior.autoEnable,
     this.dragSelection = const DragSelectionOptions(),
+    this.rectangleSelection,
     this.autoScroll = const SelectionAutoScrollOptions(),
     this.constraints,
   });
@@ -55,17 +57,24 @@ class SelectionOptions {
   /// Drag selection options. If null, drag selection is disabled.
   final DragSelectionOptions? dragSelection;
 
+  /// Rectangle selection options. If null, rectangle selection is disabled.
+  final RectangleSelectionOptions? rectangleSelection;
+
   SelectionOptions copyWith({
     HapticResolver? haptics,
     SelectionBehavior? behavior,
     SelectionConstraints? constraints,
     SelectionAutoScrollOptions? autoScroll,
+    DragSelectionOptions? dragSelection,
+    RectangleSelectionOptions? rectangleSelection,
   }) {
     return SelectionOptions(
       haptics: haptics ?? this.haptics,
       behavior: behavior ?? this.behavior,
       constraints: constraints ?? this.constraints,
       autoScroll: autoScroll ?? this.autoScroll,
+      dragSelection: dragSelection ?? this.dragSelection,
+      rectangleSelection: rectangleSelection ?? this.rectangleSelection,
     );
   }
 }

@@ -6,6 +6,7 @@ import 'auto_scroll_manager.dart';
 import 'range_manager.dart';
 import 'selectability_manager.dart';
 import 'drag_selection_manager.dart';
+import 'rectangle_selection_manager.dart';
 
 class SelectionModeController extends ChangeNotifier {
   SelectionModeController({
@@ -29,12 +30,14 @@ class SelectionModeController extends ChangeNotifier {
 
   final SelectabilityManager _selectabilityManager = SelectabilityManager();
   final DragSelectionManager _dragManager = DragSelectionManager();
+  final RectangleSelectionManager _rectangleManager =
+      RectangleSelectionManager();
 
   late final RangeManager _rangeManager;
   AutoScrollManager? _autoScrollManager;
 
   Offset? _currentDragPosition;
-  final Map<int, Rect? Function()> _positionCallbacks = {};
+  final Map<int, Rect? Function()> positionCallbacks = {};
 
   bool get isActive => _enabled;
 
@@ -47,6 +50,9 @@ class SelectionModeController extends ChangeNotifier {
   }
 
   bool get isDragInProgress => _dragManager.isDragInProgress;
+  bool get isRectangleSelectionInProgress =>
+      _rectangleManager.isSelectionInProgress;
+  Rect? get selectionRect => _rectangleManager.selectionRect;
 
   void registerItem(int index, Object identifier, bool isSelectable) {
     _identifierToIndex[identifier] = index;
@@ -65,7 +71,10 @@ class SelectionModeController extends ChangeNotifier {
     }
   }
 
-  void unregisterItem(int index) {
+  void unregisterItem(
+    int index, {
+    bool? trackId,
+  }) {
     final identifier = _indexToIdentifier[index];
     if (identifier != null) {
       _identifierToIndex.remove(identifier);
@@ -81,11 +90,11 @@ class SelectionModeController extends ChangeNotifier {
   }
 
   void registerPositionCallback(int index, Rect? Function() callback) {
-    _positionCallbacks[index] = callback;
+    positionCallbacks[index] = callback;
   }
 
   void unregisterPositionCallback(int index) {
-    _positionCallbacks.remove(index);
+    positionCallbacks.remove(index);
   }
 
   Object _getIdentifier(int index) {
@@ -165,6 +174,7 @@ class SelectionModeController extends ChangeNotifier {
     }
     _rangeManager.clearAnchor();
     _dragManager.endDrag();
+    _rectangleManager.endSelection();
     _autoScrollManager?.stopDragAutoScroll();
     _currentDragPosition = null;
     notifyListeners();
@@ -178,6 +188,7 @@ class SelectionModeController extends ChangeNotifier {
       _triggerHaptic(HapticEvent.modeDisabled);
       _rangeManager.clearAnchor();
       _dragManager.endDrag();
+      _rectangleManager.endSelection();
       _autoScrollManager?.stopDragAutoScroll();
       _currentDragPosition = null;
     }
@@ -466,17 +477,86 @@ class SelectionModeController extends ChangeNotifier {
     _checkAutoDisable();
   }
 
+  // Rectangle selection methods
+  void startRectangleSelection(Offset position) {
+    if (_shouldBlockManualSelection()) return;
+
+    if (!_enabled && _shouldAutoEnable()) {
+      _setEnabled(true);
+      _triggerHaptic(HapticEvent.modeEnabled);
+    }
+
+    _rectangleManager.startSelection(position, selection);
+    _triggerHaptic(HapticEvent.dragStart);
+    notifyListeners();
+  }
+
+  void updateRectangleSelection(Offset position, {bool isToggleMode = false}) {
+    if (!_rectangleManager.isSelectionInProgress) return;
+
+    _rectangleManager.updateSelection(position);
+
+    final result = _rectangleManager.calculateSelection(
+      positionCallbacks,
+      _selectabilityManager.isSelectable,
+      _options.constraints,
+      isToggleMode: isToggleMode,
+    );
+
+    // Update selection
+    _selectedIdentifiers.clear();
+    for (final index in result.newSelection) {
+      final identifier = _getIdentifier(index);
+      _selectedIdentifiers.add(identifier);
+    }
+
+    // Trigger haptics for changes
+    if (result.addedItems.isNotEmpty) {
+      _triggerHaptic(HapticEvent.itemSelectedInRange);
+    }
+    if (result.removedItems.isNotEmpty) {
+      _triggerHaptic(HapticEvent.itemDeselectedInRange);
+    }
+    if (result.hitLimit) {
+      _triggerHaptic(HapticEvent.maxItemsReached);
+    }
+
+    notifyListeners();
+  }
+
+  void endRectangleSelection() {
+    if (_rectangleManager.isSelectionInProgress) {
+      _rectangleManager.endSelection();
+      _checkAutoDisable();
+      notifyListeners();
+    }
+  }
+
+  void cancelRectangleSelection() {
+    if (_rectangleManager.isSelectionInProgress) {
+      final originalSelection = _rectangleManager.cancelSelection();
+
+      _selectedIdentifiers.clear();
+      for (final index in originalSelection) {
+        final identifier = _getIdentifier(index);
+        _selectedIdentifiers.add(identifier);
+      }
+
+      _checkAutoDisable();
+      notifyListeners();
+    }
+  }
+
   void _onAutoScrollUpdate() {
     if (_dragManager.isDragInProgress) {
       if (_currentDragPosition case final Offset position) {
-        // This is needed to manually trigger drag-over events during auto-scroll when the viewport scrolls but the pointer does not move.
         _checkItemUnderPointer(position);
       }
     }
   }
 
   void _checkItemUnderPointer(Offset position) {
-    for (final entry in _positionCallbacks.entries) {
+    for (final entry in positionCallbacks.entries) {
       final rect = entry.value();
       if (rect != null && rect.contains(position)) {
         handleDragOver(entry.key);
@@ -574,6 +654,7 @@ class SelectionModeController extends ChangeNotifier {
       _triggerHaptic(HapticEvent.modeDisabled);
       _rangeManager.clearAnchor();
       _dragManager.endDrag();
+      _rectangleManager.endSelection();
       _autoScrollManager?.stopDragAutoScroll();
       _currentDragPosition = null;
     }
@@ -590,7 +671,7 @@ class SelectionModeController extends ChangeNotifier {
     _indexToIdentifier.clear();
     _selectabilityManager.clear();
     _selectedIdentifiers.clear();
-    _positionCallbacks.clear();
+    positionCallbacks.clear();
   }
 
   @override
@@ -598,6 +679,7 @@ class SelectionModeController extends ChangeNotifier {
     _autoScrollManager?.dispose();
     _rangeManager.dispose();
     _dragManager.reset();
+    _rectangleManager.reset();
     _clearAllMappings();
     super.dispose();
   }
