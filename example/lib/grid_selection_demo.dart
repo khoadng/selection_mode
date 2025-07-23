@@ -68,7 +68,12 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
             IconButton(
               icon: Icon(_showHidden ? Icons.visibility_off : Icons.visibility),
               tooltip: _showHidden ? 'Hide filtered items' : 'Show all items',
-              onPressed: () => setState(() => _showHidden = !_showHidden),
+              onPressed: () => setState(() {
+                print(
+                  'Toggling visibility from $_showHidden to ${!_showHidden}',
+                );
+                _showHidden = !_showHidden;
+              }),
             ),
             IconButton(
               icon: const Icon(Icons.shuffle),
@@ -117,8 +122,13 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
                 ),
                 tooltip: 'Toggle Rectangle Selection',
                 onPressed: () => setState(
-                  () =>
-                      _rectangleSelectionEnabled = !_rectangleSelectionEnabled,
+                  () {
+                    print(
+                      'Toggling rectangle selection mode from '
+                      '$_rectangleSelectionEnabled to ${!_rectangleSelectionEnabled}',
+                    );
+                    _rectangleSelectionEnabled = !_rectangleSelectionEnabled;
+                  },
                 ),
               ),
             ],

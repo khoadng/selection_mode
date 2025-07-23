@@ -61,6 +61,8 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
     final controller = SelectionMode.of(context);
     if (_controller != controller) {
       _controller?.unregisterItem(widget.index);
+      _controller?.unregisterPositionCallback(widget.index);
+
       _controller = controller;
       controller.registerItem(
         widget.index,
@@ -88,6 +90,7 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
         oldWidget.index != widget.index ||
         oldWidget.isSelectable != widget.isSelectable) {
       _controller?.unregisterItem(oldWidget.index);
+      _controller?.unregisterPositionCallback(oldWidget.index);
       _controller?.registerItem(
         widget.index,
         newIdentifier,
@@ -99,12 +102,6 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
         _getCurrentBounds,
       );
     }
-  }
-
-  @override
-  void dispose() {
-    _controller?.unregisterPositionCallback(widget.index);
-    super.dispose();
   }
 
   @override
