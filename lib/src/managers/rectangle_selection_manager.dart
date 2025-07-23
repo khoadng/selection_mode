@@ -83,8 +83,8 @@ class RectangleSelectionManager {
       }
     }
 
-    // Replace mode: replace selection with intersecting items
-    final newSelection = Set<int>.from(_preSelectionState);
+    // Clean up pre-selection state
+    final newSelection = <int>{};
 
     for (final item in intersectingItems) {
       if (!newSelection.contains(item)) {
