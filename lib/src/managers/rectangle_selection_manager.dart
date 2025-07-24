@@ -105,9 +105,6 @@ class RectangleSelectionManager extends ChangeNotifier {
 
       final itemRect = getPosition();
 
-      print(
-          'Checking item $index: $itemRect against selection rect: $rect, overlaps: ${itemRect?.overlaps(rect)}');
-
       if (itemRect != null && rect.overlaps(itemRect)) {
         intersectingItems.add(index);
       }
