@@ -550,10 +550,42 @@ class SelectionModeController extends ChangeNotifier {
   }
 
   void _onAutoScrollUpdate() {
+    // Handle item-to-item drag selection during auto-scroll
     if (_dragManager.isDragInProgress) {
       if (_currentDragPosition case final Offset position) {
         _checkItemUnderPointer(position);
       }
+    }
+
+    // Handle rectangle selection during auto-scroll
+    if (_rectangleManager.isSelectionInProgress) {
+      // Recalculate selection as items scroll into/out of rectangle
+      final result = _rectangleManager.calculateSelection(
+        positionCallbacks,
+        _selectabilityManager.isSelectable,
+        _options.constraints,
+      );
+
+      // Update selection
+      _stateManager.clearIdentifiers();
+      for (final index in result.newSelection) {
+        final identifier = _stateManager.getIdentifier(index);
+        _stateManager.addIdentifier(identifier);
+      }
+
+      // Trigger haptics for changes
+      if (result.addedItems.isNotEmpty) {
+        _triggerHaptic(HapticEvent.itemSelectedInRange);
+      }
+      if (result.removedItems.isNotEmpty) {
+        _triggerHaptic(HapticEvent.itemDeselectedInRange);
+      }
+      if (result.hitLimit) {
+        _triggerHaptic(HapticEvent.maxItemsReached);
+      }
+
+      // Trigger repaint
+      notifyListeners();
     }
   }
 
