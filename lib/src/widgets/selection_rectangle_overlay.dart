@@ -14,7 +14,7 @@ class SelectionRectangleOverlay extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        final rect = controller.selectionRect;
+        final rect = controller.getViewportSelectionRect();
         if (rect == null) {
           return const SizedBox.shrink();
         }

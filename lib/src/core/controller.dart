@@ -468,10 +468,25 @@ class SelectionModeController extends ChangeNotifier {
       _triggerHaptic(HapticEvent.modeEnabled);
     }
 
-    _rectangleManager.startSelection(position, selection);
+    final scrollOffset = _autoScrollManager?.scrollController.hasClients == true
+        ? _autoScrollManager!.scrollController.offset
+        : 0.0;
+
+    _rectangleManager.startSelection(position, selection, scrollOffset);
     _autoScrollManager?.startDragAutoScroll();
     _triggerHaptic(HapticEvent.dragStart);
     notifyListeners();
+  }
+
+  /// Get viewport rectangle for painting
+  Rect? getViewportSelectionRect() {
+    if (!_rectangleManager.isSelectionInProgress) return null;
+
+    final scrollOffset = _autoScrollManager?.scrollController.hasClients == true
+        ? _autoScrollManager!.scrollController.offset
+        : 0.0;
+
+    return _rectangleManager.getViewportRect(scrollOffset);
   }
 
   void updateRectangleSelection(Offset position) {

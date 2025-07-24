@@ -22,12 +22,13 @@ class RectangleSelectionManager {
   Offset? _startPosition;
   Offset? _currentPosition;
   Set<int> _preSelectionState = {};
+  double _initialScrollOffset = 0;
 
   bool get isSelectionInProgress => _isSelectionInProgress;
   Offset? get startPosition => _startPosition;
   Offset? get currentPosition => _currentPosition;
 
-  /// Current selection rectangle bounds
+  /// Current selection rectangle bounds (content coordinates)
   Rect? get selectionRect {
     if (_startPosition == null || _currentPosition == null) return null;
 
@@ -37,12 +38,27 @@ class RectangleSelectionManager {
     return Rect.fromPoints(start, current);
   }
 
+  /// Get rectangle in viewport coordinates for painting
+  Rect? getViewportRect(double currentScrollOffset) {
+    if (_startPosition == null || _currentPosition == null) return null;
+
+    final scrollDelta = currentScrollOffset - _initialScrollOffset;
+    final adjustedStart = _startPosition! - Offset(0, scrollDelta);
+
+    return Rect.fromPoints(adjustedStart, _currentPosition!);
+  }
+
   /// Start rectangle selection
-  void startSelection(Offset position, Set<int> currentSelection) {
+  void startSelection(
+    Offset position,
+    Set<int> currentSelection,
+    double scrollOffset,
+  ) {
     _isSelectionInProgress = true;
     _startPosition = position;
     _currentPosition = position;
     _preSelectionState = Set<int>.from(currentSelection);
+    _initialScrollOffset = scrollOffset;
   }
 
   /// Update current position during selection
@@ -115,6 +131,7 @@ class RectangleSelectionManager {
     _startPosition = null;
     _currentPosition = null;
     _preSelectionState.clear();
+    _initialScrollOffset = 0;
   }
 
   /// Cancel rectangle selection and return to pre-selection state
