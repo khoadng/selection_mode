@@ -46,10 +46,23 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
     final renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null || !renderBox.hasSize) return null;
 
+    RenderBox? canvasRenderBox;
+    context.visitAncestorElements((element) {
+      if (element.widget is SelectionCanvas) {
+        canvasRenderBox = element.findRenderObject() as RenderBox?;
+        return false;
+      }
+      return true;
+    });
+
+    if (canvasRenderBox == null) return null;
+
     final globalOffset = renderBox.localToGlobal(Offset.zero);
+    final localOffset = canvasRenderBox!.globalToLocal(globalOffset);
+
     return Rect.fromLTWH(
-      globalOffset.dx,
-      globalOffset.dy,
+      localOffset.dx,
+      localOffset.dy,
       renderBox.size.width,
       renderBox.size.height,
     );
