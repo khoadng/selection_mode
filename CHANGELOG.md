@@ -1,3 +1,7 @@
+## 0.0.4
+
+** Breaking Change **: Introduced `SelectionCanvas` widget. This widget is required, wrap it above scrollable widgets like `ListView` or `GridView`.
+
 ## 0.0.3
 
 * Add `SelectionConsumer` widget to simplify selection state access.
