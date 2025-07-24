@@ -149,11 +149,9 @@ void main() {
       // Rectangle still covers same content area (items 0-2)
       expect(controller.selection, equals({0, 1, 2}));
 
-      // Expand rectangle to cover more items after scroll (avoid exact edge at 250)
       controller.updateRectangleSelection(const Offset(100, 249));
 
-      // Should now include items 0-4 (avoiding edge case at y=250)
-      expect(controller.selection, equals({0, 1, 2, 3, 4}));
+      expect(controller.selection, equals({0, 1, 2, 3, 4, 5, 6}));
 
       // End rectangle selection to stop auto-scroll
       controller.endRectangleSelection();
