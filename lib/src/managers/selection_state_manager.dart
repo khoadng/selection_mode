@@ -41,17 +41,17 @@ class SelectionStateManager {
     }
   }
 
-  /// Add identifier to selection (pure state operation)
+  /// Add identifier to selection
   void addIdentifier(Object identifier) {
     _selectedIdentifiers.add(identifier);
   }
 
-  /// Remove identifier from selection (pure state operation)
+  /// Remove identifier from selection
   void removeIdentifier(Object identifier) {
     _selectedIdentifiers.remove(identifier);
   }
 
-  /// Clear all selections (pure state operation)
+  /// Clear all selections
   void clearIdentifiers() {
     _selectedIdentifiers.clear();
   }
