@@ -12,7 +12,7 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
   final _controller = SelectionModeController();
   final _scrollController = ScrollController();
   final _allPhotos = List.generate(
-    100,
+    10000,
     (index) => Photo(
       id: index + 100,
       title: 'Photo ${index + 1}',

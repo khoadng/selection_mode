@@ -47,12 +47,6 @@ class AutoScrollManager {
   void handleDragUpdate(Offset globalPosition, Size viewportSize) {
     if (!scrollController.hasClients) return;
 
-    if (globalPosition.dy < -config.edgeThreshold ||
-        globalPosition.dy > viewportSize.height + config.edgeThreshold) {
-      updateScrollParams(ScrollDirection.none, 0.0);
-      return;
-    }
-
     final direction = _calculateScrollDirection(globalPosition, viewportSize);
     final speed = _calculateScrollSpeed(
       globalPosition,
@@ -107,35 +101,59 @@ class AutoScrollManager {
   ScrollDirection _calculateScrollDirection(
     Offset globalPosition,
     Size viewportSize,
-  ) =>
-      switch (globalPosition.dy) {
-        double y when y <= config.edgeThreshold => ScrollDirection.up,
-        double y when y >= viewportSize.height - config.edgeThreshold =>
-          ScrollDirection.down,
-        double() => ScrollDirection.none,
-      };
+  ) {
+    // Stop if pointer is in center area (away from edges)
+    if (globalPosition.dy > config.edgeThreshold &&
+        globalPosition.dy < viewportSize.height - config.edgeThreshold) {
+      return ScrollDirection.none;
+    }
+
+    // Scroll up when pointer is at top edge or above viewport
+    if (globalPosition.dy <= config.edgeThreshold) {
+      return ScrollDirection.up;
+    }
+
+    // Scroll down when pointer is at bottom edge or below viewport
+    if (globalPosition.dy >= viewportSize.height - config.edgeThreshold) {
+      return ScrollDirection.down;
+    }
+
+    return ScrollDirection.none;
+  }
 
   double _calculateScrollSpeed(
     Offset globalPosition,
     Size viewportSize,
     ScrollDirection direction,
   ) {
-    final distanceFromEdge = switch (direction) {
-      ScrollDirection.up => globalPosition.dy,
-      ScrollDirection.down => viewportSize.height - globalPosition.dy,
-      ScrollDirection.none => 0.0,
+    if (direction == ScrollDirection.none) return 0.0;
+
+    final (distanceFromEdge, beyondDistance) = switch (direction) {
+      ScrollDirection.up => (
+          globalPosition.dy,
+          globalPosition.dy < 0 ? -globalPosition.dy : 0.0
+        ),
+      ScrollDirection.down => (
+          viewportSize.height - globalPosition.dy,
+          globalPosition.dy > viewportSize.height
+              ? globalPosition.dy - viewportSize.height
+              : 0.0
+        ),
+      ScrollDirection.none => (0.0, 0.0),
     };
 
-    if (distanceFromEdge == 0) {
-      return 0.0; // No scrolling if at edge
+    // Beyond viewport: progressive acceleration
+    if (beyondDistance > 0) {
+      final accelerationFactor =
+          1.0 + (beyondDistance / config.edgeThreshold).clamp(0.0, 3.0);
+      return config.scrollSpeed * accelerationFactor;
     }
 
-    // Calculate speed based on proximity to edge (closer = faster)
-    final proximity = (config.edgeThreshold -
-            distanceFromEdge.clamp(0, config.edgeThreshold)) /
-        config.edgeThreshold;
+    // Within edge threshold: proximity-based speed
+    final proximity =
+        (config.edgeThreshold - distanceFromEdge) / config.edgeThreshold;
     return config.scrollSpeed *
-        config.speedCurve.transform(proximity).clamp(0.1, 1.0);
+        config.speedCurve.transform(proximity.clamp(0.0, 1.0));
   }
 
   void dispose() {
