@@ -10,25 +10,34 @@ class SelectionRectangleOverlay extends StatelessWidget {
     return SelectionConsumer(
       builder: (context, controller, _) {
         final options = controller.options.rectangleSelection;
-        if (options == null || !controller.isRectangleSelectionInProgress) {
+        if (options == null) {
           return const SizedBox.shrink();
         }
 
-        final rect = controller.getViewportSelectionRect();
-        if (rect == null) {
-          return const SizedBox.shrink();
-        }
+        return ListenableBuilder(
+          listenable: controller.rectangleManager,
+          builder: (context, _) {
+            if (!controller.rectangleManager.isSelectionInProgress) {
+              return const SizedBox.shrink();
+            }
 
-        return Positioned.fill(
-          child: CustomPaint(
-            painter: _SelectionRectanglePainter(
-              rect: rect,
-              strokeWidth: options.strokeWidth,
-              strokeColor:
-                  options.strokeColor ?? Theme.of(context).colorScheme.primary,
-              fillColor: options.fillColor,
-            ),
-          ),
+            final rect = controller.getViewportSelectionRect();
+            if (rect == null) {
+              return const SizedBox.shrink();
+            }
+
+            return Positioned.fill(
+              child: CustomPaint(
+                painter: _SelectionRectanglePainter(
+                  rect: rect,
+                  strokeWidth: options.strokeWidth,
+                  strokeColor: options.strokeColor ??
+                      Theme.of(context).colorScheme.primary,
+                  fillColor: options.fillColor,
+                ),
+              ),
+            );
+          },
         );
       },
     );

@@ -18,6 +18,9 @@ class SelectionModeController extends ChangeNotifier {
     _rangeManager = RangeManager(
       isSelectable: _selectabilityManager.isSelectable,
     );
+
+    // Listen to rectangle manager for selection calculations
+    _rectangleManager.addListener(_onRectangleChanged);
   }
 
   SelectionOptions _options = const SelectionOptions();
@@ -38,14 +41,12 @@ class SelectionModeController extends ChangeNotifier {
   final Map<int, Rect? Function()> positionCallbacks = {};
 
   bool get isActive => _enabled;
-
   Set<int> get selection => _stateManager.selection;
-
   bool get isDragInProgress => _dragManager.isDragInProgress;
   bool get isRectangleSelectionInProgress =>
       _rectangleManager.isSelectionInProgress;
-  Rect? get selectionRect => _rectangleManager.selectionRect;
 
+  RectangleSelectionManager get rectangleManager => _rectangleManager;
   AutoScrollManager? get autoScrollManager => _autoScrollManager;
 
   void registerItem(int index, Object identifier, bool isSelectable) {
@@ -134,8 +135,6 @@ class SelectionModeController extends ChangeNotifier {
   }
 
   bool isSelectable(int index) => _selectabilityManager.isSelectable(index);
-
-  // Delegate to state manager
   bool isSelected(int item) => _stateManager.isSelected(item);
 
   void enable({List<int>? initialSelected}) {
@@ -475,7 +474,6 @@ class SelectionModeController extends ChangeNotifier {
     _rectangleManager.startSelection(position, selection, scrollOffset);
     _autoScrollManager?.startDragAutoScroll();
     _triggerHaptic(HapticEvent.dragStart);
-    notifyListeners();
   }
 
   /// Get viewport rectangle for painting
@@ -493,33 +491,7 @@ class SelectionModeController extends ChangeNotifier {
     if (!_rectangleManager.isSelectionInProgress) return;
 
     _currentDragPosition = position;
-    _rectangleManager.updateSelection(position);
-
-    final result = _rectangleManager.calculateSelection(
-      positionCallbacks,
-      _selectabilityManager.isSelectable,
-      _options.constraints,
-    );
-
-    // Update selection
-    _stateManager.clearIdentifiers();
-    for (final index in result.newSelection) {
-      final identifier = _stateManager.getIdentifier(index);
-      _stateManager.addIdentifier(identifier);
-    }
-
-    // Trigger haptics for changes
-    if (result.addedItems.isNotEmpty) {
-      _triggerHaptic(HapticEvent.itemSelectedInRange);
-    }
-    if (result.removedItems.isNotEmpty) {
-      _triggerHaptic(HapticEvent.itemDeselectedInRange);
-    }
-    if (result.hitLimit) {
-      _triggerHaptic(HapticEvent.maxItemsReached);
-    }
-
-    notifyListeners();
+    _rectangleManager.updatePosition(position);
   }
 
   void endRectangleSelection() {
@@ -528,7 +500,6 @@ class SelectionModeController extends ChangeNotifier {
       _autoScrollManager?.stopDragAutoScroll();
       _currentDragPosition = null;
       _checkAutoDisable();
-      notifyListeners();
     }
   }
 
@@ -549,6 +520,44 @@ class SelectionModeController extends ChangeNotifier {
     }
   }
 
+  void _onRectangleChanged() {
+    if (!_rectangleManager.isSelectionInProgress) return;
+
+    final result = _rectangleManager.calculateSelection(
+      positionCallbacks,
+      _selectabilityManager.isSelectable,
+      _options.constraints,
+    );
+
+    // Check if selection actually changed
+    final currentSelection = selection;
+    final hasSelectionChanged =
+        result.newSelection.length != currentSelection.length ||
+            !result.newSelection.containsAll(currentSelection);
+
+    if (!hasSelectionChanged) return;
+
+    // Update selection only if it changed
+    _stateManager.clearIdentifiers();
+    for (final index in result.newSelection) {
+      final identifier = _stateManager.getIdentifier(index);
+      _stateManager.addIdentifier(identifier);
+    }
+
+    // Trigger haptics for changes
+    if (result.addedItems.isNotEmpty) {
+      _triggerHaptic(HapticEvent.itemSelectedInRange);
+    }
+    if (result.removedItems.isNotEmpty) {
+      _triggerHaptic(HapticEvent.itemDeselectedInRange);
+    }
+    if (result.hitLimit) {
+      _triggerHaptic(HapticEvent.maxItemsReached);
+    }
+
+    notifyListeners();
+  }
+
   void _onAutoScrollUpdate() {
     // Handle item-to-item drag selection during auto-scroll
     if (_dragManager.isDragInProgress) {
@@ -557,35 +566,9 @@ class SelectionModeController extends ChangeNotifier {
       }
     }
 
-    // Handle rectangle selection during auto-scroll
-    if (_rectangleManager.isSelectionInProgress) {
-      // Recalculate selection as items scroll into/out of rectangle
-      final result = _rectangleManager.calculateSelection(
-        positionCallbacks,
-        _selectabilityManager.isSelectable,
-        _options.constraints,
-      );
-
-      // Update selection
-      _stateManager.clearIdentifiers();
-      for (final index in result.newSelection) {
-        final identifier = _stateManager.getIdentifier(index);
-        _stateManager.addIdentifier(identifier);
-      }
-
-      // Trigger haptics for changes
-      if (result.addedItems.isNotEmpty) {
-        _triggerHaptic(HapticEvent.itemSelectedInRange);
-      }
-      if (result.removedItems.isNotEmpty) {
-        _triggerHaptic(HapticEvent.itemDeselectedInRange);
-      }
-      if (result.hitLimit) {
-        _triggerHaptic(HapticEvent.maxItemsReached);
-      }
-
-      // Trigger repaint
-      notifyListeners();
+    if (_rectangleManager.isSelectionInProgress &&
+        _currentDragPosition != null) {
+      _rectangleManager.updatePosition(_currentDragPosition!);
     }
   }
 
@@ -703,10 +686,11 @@ class SelectionModeController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _rectangleManager.removeListener(_onRectangleChanged);
     _autoScrollManager?.dispose();
     _rangeManager.dispose();
     _dragManager.reset();
-    _rectangleManager.reset();
+    _rectangleManager.dispose();
     _clearAllMappings();
     super.dispose();
   }

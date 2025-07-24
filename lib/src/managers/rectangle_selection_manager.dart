@@ -17,7 +17,7 @@ class RectangleSelectionResult {
 }
 
 /// Manages rectangle selection state and operations
-class RectangleSelectionManager {
+class RectangleSelectionManager extends ChangeNotifier {
   bool _isSelectionInProgress = false;
   Offset? _startPosition;
   Offset? _currentPosition;
@@ -59,12 +59,14 @@ class RectangleSelectionManager {
     _currentPosition = position;
     _preSelectionState = Set<int>.from(currentSelection);
     _initialScrollOffset = scrollOffset;
+    notifyListeners();
   }
 
   /// Update current position during selection
-  void updateSelection(Offset position) {
+  void updatePosition(Offset position) {
     if (!_isSelectionInProgress) return;
     _currentPosition = position;
+    notifyListeners();
   }
 
   /// Calculate items that intersect with current rectangle
@@ -132,6 +134,7 @@ class RectangleSelectionManager {
     _currentPosition = null;
     _preSelectionState.clear();
     _initialScrollOffset = 0;
+    notifyListeners();
   }
 
   /// Cancel rectangle selection and return to pre-selection state
@@ -144,5 +147,11 @@ class RectangleSelectionManager {
   /// Reset manager state
   void reset() {
     endSelection();
+  }
+
+  @override
+  void dispose() {
+    reset();
+    super.dispose();
   }
 }
