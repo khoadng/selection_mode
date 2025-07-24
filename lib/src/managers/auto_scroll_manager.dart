@@ -134,7 +134,8 @@ class AutoScrollManager {
     final proximity = (config.edgeThreshold -
             distanceFromEdge.clamp(0, config.edgeThreshold)) /
         config.edgeThreshold;
-    return config.scrollSpeed * proximity.clamp(0.1, 1.0);
+    return config.scrollSpeed *
+        config.speedCurve.transform(proximity).clamp(0.1, 1.0);
   }
 
   void dispose() {
