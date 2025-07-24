@@ -19,33 +19,34 @@ class RectangleSelectionResult {
 /// Manages rectangle selection state and operations
 class RectangleSelectionManager extends ChangeNotifier {
   bool _isSelectionInProgress = false;
+  // Canvas coordinates
   Offset? _startPosition;
-  Offset? _currentPosition;
+  // Canvas coordinates for selection calculations
+  Offset? _currentCanvasPosition;
+  // Viewport coordinates for overlay drawing
+  Offset? _currentViewportPosition;
   Set<int> _preSelectionState = {};
   double _initialScrollOffset = 0;
 
   bool get isSelectionInProgress => _isSelectionInProgress;
   Offset? get startPosition => _startPosition;
-  Offset? get currentPosition => _currentPosition;
+  Offset? get currentViewportPosition => _currentViewportPosition;
 
-  /// Current selection rectangle bounds (content coordinates)
+  /// Current selection rectangle bounds (canvas coordinates)
   Rect? get selectionRect {
-    if (_startPosition == null || _currentPosition == null) return null;
+    if (_startPosition == null || _currentCanvasPosition == null) return null;
 
-    final start = _startPosition!;
-    final current = _currentPosition!;
-
-    return Rect.fromPoints(start, current);
+    return Rect.fromPoints(_startPosition!, _currentCanvasPosition!);
   }
 
   /// Get rectangle in viewport coordinates for painting
   Rect? getViewportRect(double currentScrollOffset) {
-    if (_startPosition == null || _currentPosition == null) return null;
+    if (_startPosition == null || _currentViewportPosition == null) return null;
 
     final scrollDelta = currentScrollOffset - _initialScrollOffset;
     final adjustedStart = _startPosition! - Offset(0, scrollDelta);
 
-    return Rect.fromPoints(adjustedStart, _currentPosition!);
+    return Rect.fromPoints(adjustedStart, _currentViewportPosition!);
   }
 
   /// Start rectangle selection
@@ -56,16 +57,23 @@ class RectangleSelectionManager extends ChangeNotifier {
   ) {
     _isSelectionInProgress = true;
     _startPosition = position;
-    _currentPosition = position;
+    _currentCanvasPosition = position;
+    _currentViewportPosition = position;
     _preSelectionState = Set<int>.from(currentSelection);
     _initialScrollOffset = scrollOffset;
     notifyListeners();
   }
 
   /// Update current position during selection
-  void updatePosition(Offset position) {
+  void updatePosition(Offset viewportPosition, double currentScrollOffset) {
     if (!_isSelectionInProgress) return;
-    _currentPosition = position;
+
+    _currentViewportPosition = viewportPosition;
+
+    // Convert viewport position to canvas coordinates for selection calculations
+    final scrollDelta = currentScrollOffset - _initialScrollOffset;
+    _currentCanvasPosition = viewportPosition + Offset(0, scrollDelta);
+
     notifyListeners();
   }
 
@@ -96,6 +104,10 @@ class RectangleSelectionManager extends ChangeNotifier {
       if (!isSelectable(index)) continue;
 
       final itemRect = getPosition();
+
+      print(
+          'Checking item $index: $itemRect against selection rect: $rect, overlaps: ${itemRect?.overlaps(rect)}');
+
       if (itemRect != null && rect.overlaps(itemRect)) {
         intersectingItems.add(index);
       }
@@ -131,7 +143,8 @@ class RectangleSelectionManager extends ChangeNotifier {
   void endSelection() {
     _isSelectionInProgress = false;
     _startPosition = null;
-    _currentPosition = null;
+    _currentCanvasPosition = null;
+    _currentViewportPosition = null;
     _preSelectionState.clear();
     _initialScrollOffset = 0;
     notifyListeners();

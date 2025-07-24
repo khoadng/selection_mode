@@ -472,6 +472,7 @@ class SelectionModeController extends ChangeNotifier {
         : 0.0;
 
     _rectangleManager.startSelection(position, selection, scrollOffset);
+    _currentDragPosition = position;
     _autoScrollManager?.startDragAutoScroll();
     _triggerHaptic(HapticEvent.dragStart);
   }
@@ -491,7 +492,8 @@ class SelectionModeController extends ChangeNotifier {
     if (!_rectangleManager.isSelectionInProgress) return;
 
     _currentDragPosition = position;
-    _rectangleManager.updatePosition(position);
+    final scrollOffset = _autoScrollManager?.scrollController.offset ?? 0.0;
+    _rectangleManager.updatePosition(position, scrollOffset);
   }
 
   void endRectangleSelection() {
@@ -568,7 +570,8 @@ class SelectionModeController extends ChangeNotifier {
 
     if (_rectangleManager.isSelectionInProgress &&
         _currentDragPosition != null) {
-      _rectangleManager.updatePosition(_currentDragPosition!);
+      final scrollOffset = _autoScrollManager?.scrollController.offset ?? 0.0;
+      _rectangleManager.updatePosition(_currentDragPosition!, scrollOffset);
     }
   }
 
