@@ -1,21 +1,22 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'haptic_feedback.dart';
-import 'selection_options.dart';
-import 'auto_scroll_manager.dart';
-import 'range_manager.dart';
-import 'selectability_manager.dart';
-import 'drag_selection_manager.dart';
+import '../options/haptic_feedback.dart';
+import '../options/selection_options.dart';
+import '../managers/auto_scroll_manager.dart';
+import '../managers/range_manager.dart';
+import '../managers/selectability_manager.dart';
+import '../managers/drag_selection_manager.dart';
+import '../managers/selection_state_manager.dart';
 
 class SelectionModeController extends ChangeNotifier {
   SelectionModeController({
     bool initialEnabled = false,
     Set<int>? initialSelected,
-  }) : _enabled = initialEnabled {
+  })  : _enabled = initialEnabled,
+        _stateManager = SelectionStateManager(initialSelected) {
     _rangeManager = RangeManager(
       isSelectable: _selectabilityManager.isSelectable,
     );
-    _selectedIdentifiers = Set<Object>.from(initialSelected ?? <int>{});
   }
 
   SelectionOptions _options = const SelectionOptions();
@@ -23,10 +24,7 @@ class SelectionModeController extends ChangeNotifier {
 
   bool _enabled;
 
-  late Set<Object> _selectedIdentifiers = <Object>{};
-  final Map<Object, int> _identifierToIndex = <Object, int>{};
-  final Map<int, Object> _indexToIdentifier = <int, Object>{};
-
+  late final SelectionStateManager _stateManager;
   final SelectabilityManager _selectabilityManager = SelectabilityManager();
   final DragSelectionManager _dragManager = DragSelectionManager();
 
@@ -34,29 +32,21 @@ class SelectionModeController extends ChangeNotifier {
   AutoScrollManager? _autoScrollManager;
 
   Offset? _currentDragPosition;
-  final Map<int, Rect? Function()> _positionCallbacks = {};
+  final Map<int, Rect? Function()> positionCallbacks = {};
 
   bool get isActive => _enabled;
-
-  Set<int> get selection {
-    return _selectedIdentifiers
-        .map((id) => _identifierToIndex[id])
-        .where((index) => index != null)
-        .cast<int>()
-        .toSet();
-  }
-
+  Set<int> get selection => _stateManager.selection;
   bool get isDragInProgress => _dragManager.isDragInProgress;
 
-  void registerItem(int index, Object identifier, bool isSelectable) {
-    _identifierToIndex[identifier] = index;
-    _indexToIdentifier[index] = identifier;
+  AutoScrollManager? get autoScrollManager => _autoScrollManager;
 
+  void registerItem(int index, Object identifier, bool isSelectable) {
+    _stateManager.registerItem(index, identifier);
     _selectabilityManager.setSelectable(index, isSelectable);
 
     // If identifier was selected but item became unselectable, remove selection
-    if (!isSelectable && _selectedIdentifiers.contains(identifier)) {
-      _selectedIdentifiers.remove(identifier);
+    if (!isSelectable && _stateManager.isSelected(index)) {
+      _stateManager.removeIdentifier(identifier);
       if (_rangeManager.anchor == index) {
         _rangeManager.clearAnchor();
       }
@@ -65,13 +55,8 @@ class SelectionModeController extends ChangeNotifier {
     }
   }
 
-  void unregisterItem(int index) {
-    final identifier = _indexToIdentifier[index];
-    if (identifier != null) {
-      _identifierToIndex.remove(identifier);
-      _indexToIdentifier.remove(index);
-    }
-
+  void unregisterItem(int index, {bool? trackId}) {
+    _stateManager.unregisterItem(index);
     _selectabilityManager.removeItem(index);
 
     if (_rangeManager.anchor == index) {
@@ -81,15 +66,11 @@ class SelectionModeController extends ChangeNotifier {
   }
 
   void registerPositionCallback(int index, Rect? Function() callback) {
-    _positionCallbacks[index] = callback;
+    positionCallbacks[index] = callback;
   }
 
   void unregisterPositionCallback(int index) {
-    _positionCallbacks.remove(index);
-  }
-
-  Object _getIdentifier(int index) {
-    return _indexToIdentifier[index] ?? index;
+    positionCallbacks.remove(index);
   }
 
   void setAutoScrollManager(AutoScrollManager? manager) {
@@ -104,11 +85,13 @@ class SelectionModeController extends ChangeNotifier {
     _options = options;
     final maxSelections = options.constraints?.maxSelections;
 
-    if (maxSelections != null && _selectedIdentifiers.length > maxSelections) {
-      final identifiersToRemove =
-          _selectedIdentifiers.skip(maxSelections).toList();
-      for (final id in identifiersToRemove) {
-        _selectedIdentifiers.remove(id);
+    if (maxSelections != null && _stateManager.length > maxSelections) {
+      final currentSelection = _stateManager.selection.toList();
+      final toRemove = currentSelection.skip(maxSelections);
+
+      for (final index in toRemove) {
+        final identifier = _stateManager.getIdentifier(index);
+        _stateManager.removeIdentifier(identifier);
       }
       _checkAutoDisable();
     }
@@ -126,16 +109,14 @@ class SelectionModeController extends ChangeNotifier {
   void setItemSelectable(int index, bool selectable) {
     _selectabilityManager.setSelectable(index, selectable);
 
-    if (!selectable) {
-      final identifier = _getIdentifier(index);
-      if (_selectedIdentifiers.contains(identifier)) {
-        _selectedIdentifiers.remove(identifier);
-        if (_rangeManager.anchor == index) {
-          _rangeManager.clearAnchor();
-        }
-        _checkAutoDisable();
-        notifyListeners();
+    if (!selectable && _stateManager.isSelected(index)) {
+      final identifier = _stateManager.getIdentifier(index);
+      _stateManager.removeIdentifier(identifier);
+      if (_rangeManager.anchor == index) {
+        _rangeManager.clearAnchor();
       }
+      _checkAutoDisable();
+      notifyListeners();
     }
   }
 
@@ -145,6 +126,7 @@ class SelectionModeController extends ChangeNotifier {
   }
 
   bool isSelectable(int index) => _selectabilityManager.isSelectable(index);
+  bool isSelected(int item) => _stateManager.isSelected(item);
 
   void enable({List<int>? initialSelected}) {
     _setEnabled(true);
@@ -161,7 +143,7 @@ class SelectionModeController extends ChangeNotifier {
     _setEnabled(false);
     _triggerHaptic(HapticEvent.modeDisabled);
     if (clearSelection) {
-      _selectedIdentifiers.clear();
+      _stateManager.clearIdentifiers();
     }
     _rangeManager.clearAnchor();
     _dragManager.endDrag();
@@ -195,26 +177,26 @@ class SelectionModeController extends ChangeNotifier {
       return;
     }
 
-    final identifier = _getIdentifier(item);
+    final identifier = _stateManager.getIdentifier(item);
 
-    if (_selectedIdentifiers.contains(identifier)) {
-      _selectedIdentifiers.remove(identifier);
+    if (_stateManager.isSelected(item)) {
+      _stateManager.removeIdentifier(identifier);
       _triggerHaptic(HapticEvent.itemDeselected);
       if (_rangeManager.anchor == item) {
         _rangeManager.clearAnchor();
       }
       _checkAutoDisable();
     } else {
-      final canAddMore = _options.constraints
-              ?.canAddMoreSelections(_selectedIdentifiers.length) ??
-          true;
+      final canAddMore =
+          _options.constraints?.canAddMoreSelections(_stateManager.length) ??
+              true;
 
       if (canAddMore) {
         if (!_enabled && _shouldAutoEnable()) {
           _setEnabled(true);
           _triggerHaptic(HapticEvent.modeEnabled);
         }
-        _selectedIdentifiers.add(identifier);
+        _stateManager.addIdentifier(identifier);
         _triggerHaptic(HapticEvent.itemSelected);
         if (_rangeManager.anchor == null) {
           _rangeManager.setAnchor(item);
@@ -244,8 +226,8 @@ class SelectionModeController extends ChangeNotifier {
 
     if (result.addedItems.isNotEmpty) {
       for (final index in result.addedItems) {
-        final identifier = _getIdentifier(index);
-        _selectedIdentifiers.add(identifier);
+        final identifier = _stateManager.getIdentifier(index);
+        _stateManager.addIdentifier(identifier);
       }
 
       if (result.hitLimit) {
@@ -264,11 +246,11 @@ class SelectionModeController extends ChangeNotifier {
     if (newSelection.length != currentIndexSelection.length) {
       final deselectedIndices = currentIndexSelection.difference(newSelection);
       for (final index in deselectedIndices) {
-        final identifier = _getIdentifier(index);
-        _selectedIdentifiers.remove(identifier);
+        final identifier = _stateManager.getIdentifier(index);
+        _stateManager.removeIdentifier(identifier);
       }
 
-      if (_selectedIdentifiers.isEmpty) {
+      if (_stateManager.isEmpty) {
         _rangeManager.clearAnchor();
       }
       _checkAutoDisable();
@@ -295,16 +277,16 @@ class SelectionModeController extends ChangeNotifier {
       final removed = currentIndexSelection.difference(result.selection);
 
       for (final index in removed) {
-        final identifier = _getIdentifier(index);
-        _selectedIdentifiers.remove(identifier);
+        final identifier = _stateManager.getIdentifier(index);
+        _stateManager.removeIdentifier(identifier);
       }
 
       for (final index in added) {
-        final identifier = _getIdentifier(index);
-        _selectedIdentifiers.add(identifier);
+        final identifier = _stateManager.getIdentifier(index);
+        _stateManager.addIdentifier(identifier);
       }
 
-      if (_selectedIdentifiers.isEmpty) {
+      if (_stateManager.isEmpty) {
         _rangeManager.clearAnchor();
       }
       _checkAutoDisable();
@@ -384,13 +366,13 @@ class SelectionModeController extends ChangeNotifier {
     _triggerHaptic(HapticEvent.dragStart);
 
     if (!isSelected(index)) {
-      final canAddMore = _options.constraints
-              ?.canAddMoreSelections(_selectedIdentifiers.length) ??
-          true;
+      final canAddMore =
+          _options.constraints?.canAddMoreSelections(_stateManager.length) ??
+              true;
 
       if (canAddMore) {
-        final identifier = _getIdentifier(index);
-        _selectedIdentifiers.add(identifier);
+        final identifier = _stateManager.getIdentifier(index);
+        _stateManager.addIdentifier(identifier);
         _triggerHaptic(HapticEvent.itemSelected);
         notifyListeners();
       } else {
@@ -450,10 +432,10 @@ class SelectionModeController extends ChangeNotifier {
       _triggerHaptic(HapticEvent.maxItemsReached);
     }
 
-    _selectedIdentifiers.clear();
+    _stateManager.clearIdentifiers();
     for (final index in result.newSelection) {
-      final identifier = _getIdentifier(index);
-      _selectedIdentifiers.add(identifier);
+      final identifier = _stateManager.getIdentifier(index);
+      _stateManager.addIdentifier(identifier);
     }
 
     notifyListeners();
@@ -467,16 +449,16 @@ class SelectionModeController extends ChangeNotifier {
   }
 
   void _onAutoScrollUpdate() {
+    // Handle item-to-item drag selection during auto-scroll
     if (_dragManager.isDragInProgress) {
       if (_currentDragPosition case final Offset position) {
-        // This is needed to manually trigger drag-over events during auto-scroll when the viewport scrolls but the pointer does not move.
         _checkItemUnderPointer(position);
       }
     }
   }
 
   void _checkItemUnderPointer(Offset position) {
-    for (final entry in _positionCallbacks.entries) {
+    for (final entry in positionCallbacks.entries) {
       final rect = entry.value();
       if (rect != null && rect.contains(position)) {
         handleDragOver(entry.key);
@@ -486,8 +468,8 @@ class SelectionModeController extends ChangeNotifier {
   }
 
   void deselectAll() {
-    if (_selectedIdentifiers.isEmpty) return;
-    _selectedIdentifiers.clear();
+    if (_stateManager.isEmpty) return;
+    _stateManager.clearIdentifiers();
     _rangeManager.clearAnchor();
     _checkAutoDisable();
     notifyListeners();
@@ -502,11 +484,11 @@ class SelectionModeController extends ChangeNotifier {
       _triggerHaptic(HapticEvent.modeEnabled);
     }
 
-    final oldLength = _selectedIdentifiers.length;
+    final oldLength = _stateManager.length;
     final selectableItems = _selectabilityManager.filterSelectable(items);
     _addToSelectionByIndex(selectableItems);
 
-    if (_selectedIdentifiers.length != oldLength) {
+    if (_stateManager.length != oldLength) {
       _triggerHaptic(HapticEvent.rangeSelection);
       notifyListeners();
     }
@@ -527,17 +509,12 @@ class SelectionModeController extends ChangeNotifier {
     final currentSelection = selection;
     final newSelection = selectableItems..removeAll(currentSelection);
 
-    _selectedIdentifiers.clear();
+    _stateManager.clearIdentifiers();
     _addToSelectionByIndex(newSelection);
 
     _checkAutoDisable();
     _triggerHaptic(HapticEvent.rangeSelection);
     notifyListeners();
-  }
-
-  bool isSelected(int item) {
-    final identifier = _getIdentifier(item);
-    return _selectedIdentifiers.contains(identifier);
   }
 
   void _setEnabled(bool value) {
@@ -547,12 +524,12 @@ class SelectionModeController extends ChangeNotifier {
   void _addToSelectionByIndex(Iterable<int> items) {
     bool hitLimit = false;
     for (final item in items) {
-      final canAddMore = _options.constraints
-              ?.canAddMoreSelections(_selectedIdentifiers.length) ??
-          true;
+      final canAddMore =
+          _options.constraints?.canAddMoreSelections(_stateManager.length) ??
+              true;
       if (canAddMore) {
-        final identifier = _getIdentifier(item);
-        _selectedIdentifiers.add(identifier);
+        final identifier = _stateManager.getIdentifier(item);
+        _stateManager.addIdentifier(identifier);
       } else if (!hitLimit) {
         _triggerHaptic(HapticEvent.maxItemsReached);
         hitLimit = true;
@@ -568,7 +545,7 @@ class SelectionModeController extends ChangeNotifier {
 
   void _checkAutoDisable() {
     if (_enabled &&
-        _selectedIdentifiers.isEmpty &&
+        _stateManager.isEmpty &&
         _options.behavior == SelectionBehavior.autoToggle) {
       _setEnabled(false);
       _triggerHaptic(HapticEvent.modeDisabled);
@@ -586,11 +563,9 @@ class SelectionModeController extends ChangeNotifier {
   }
 
   void _clearAllMappings() {
-    _identifierToIndex.clear();
-    _indexToIdentifier.clear();
+    _stateManager.clear();
     _selectabilityManager.clear();
-    _selectedIdentifiers.clear();
-    _positionCallbacks.clear();
+    positionCallbacks.clear();
   }
 
   @override

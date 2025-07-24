@@ -12,7 +12,7 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
   final _controller = SelectionModeController();
   final _scrollController = ScrollController();
   final _allPhotos = List.generate(
-    100,
+    1000,
     (index) => Photo(
       id: index + 100,
       title: 'Photo ${index + 1}',
@@ -102,22 +102,8 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
         ),
         body: Stack(
           children: [
-            GridView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(8),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 4,
-                mainAxisSpacing: 4,
-              ),
-              itemCount: visiblePhotos.length,
-              itemBuilder: (context, index) => SelectableItem(
-                key: ValueKey(visiblePhotos[index].id),
-                index: index,
-                onTap: () => _handlePhotoTap(index),
-                itemBuilder: (context, index) =>
-                    _PhotoTile(photo: visiblePhotos[index]),
-              ),
+            SelectionCanvas(
+              child: _buildGrid(),
             ),
             Positioned(
               left: 24,
@@ -154,6 +140,28 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
           currentIndex: _currentNavIndex,
           onTap: (index) => setState(() => _currentNavIndex = index),
         ),
+      ),
+    );
+  }
+
+  Widget _buildGrid() {
+    final visiblePhotos = _visiblePhotos;
+
+    return GridView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.all(8),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 4,
+        mainAxisSpacing: 4,
+      ),
+      itemCount: visiblePhotos.length,
+      itemBuilder: (context, index) => SelectableItem(
+        key: ValueKey(visiblePhotos[index].id),
+        index: index,
+        onTap: () => _handlePhotoTap(index),
+        itemBuilder: (context, index) =>
+            _PhotoTile(photo: visiblePhotos[index]),
       ),
     );
   }

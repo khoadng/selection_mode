@@ -46,10 +46,23 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
     final renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null || !renderBox.hasSize) return null;
 
+    RenderBox? canvasRenderBox;
+    context.visitAncestorElements((element) {
+      if (element.widget is SelectionCanvas) {
+        canvasRenderBox = element.findRenderObject() as RenderBox?;
+        return false;
+      }
+      return true;
+    });
+
+    if (canvasRenderBox == null) return null;
+
     final globalOffset = renderBox.localToGlobal(Offset.zero);
+    final localOffset = canvasRenderBox!.globalToLocal(globalOffset);
+
     return Rect.fromLTWH(
-      globalOffset.dx,
-      globalOffset.dy,
+      localOffset.dx,
+      localOffset.dy,
       renderBox.size.width,
       renderBox.size.height,
     );
@@ -61,6 +74,8 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
     final controller = SelectionMode.of(context);
     if (_controller != controller) {
       _controller?.unregisterItem(widget.index);
+      _controller?.unregisterPositionCallback(widget.index);
+
       _controller = controller;
       controller.registerItem(
         widget.index,
@@ -88,6 +103,7 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
         oldWidget.index != widget.index ||
         oldWidget.isSelectable != widget.isSelectable) {
       _controller?.unregisterItem(oldWidget.index);
+      _controller?.unregisterPositionCallback(oldWidget.index);
       _controller?.registerItem(
         widget.index,
         newIdentifier,
@@ -99,12 +115,6 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
         _getCurrentBounds,
       );
     }
-  }
-
-  @override
-  void dispose() {
-    _controller?.unregisterPositionCallback(widget.index);
-    super.dispose();
   }
 
   @override

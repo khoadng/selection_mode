@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'controller.dart';
-import 'auto_scroll_manager.dart';
-import 'selection_options.dart';
+import '../managers/auto_scroll_manager.dart';
+import '../options/selection_options.dart';
 
 class SelectionMode extends StatefulWidget {
   const SelectionMode({
@@ -135,12 +135,6 @@ class _SelectionModeState extends State<SelectionMode> {
     }
   }
 
-  void _handlePointerMove(PointerMoveEvent event) {
-    if (!_controller.isDragInProgress) return;
-
-    _controller.handleDragUpdate(event.position);
-  }
-
   @override
   Widget build(BuildContext context) {
     return _SelectionModeScope(
@@ -154,17 +148,7 @@ class _SelectionModeState extends State<SelectionMode> {
               _controller.disable();
             }
           },
-          child: Listener(
-            onPointerMove: enabled ? _handlePointerMove : null,
-            onPointerUp: enabled
-                ? (event) {
-                    if (_controller.isDragInProgress) {
-                      _controller.endRangeSelection();
-                    }
-                  }
-                : null,
-            child: widget.child,
-          ),
+          child: widget.child,
         ),
       ),
     );

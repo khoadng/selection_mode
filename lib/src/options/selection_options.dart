@@ -60,12 +60,14 @@ class SelectionOptions {
     SelectionBehavior? behavior,
     SelectionConstraints? constraints,
     SelectionAutoScrollOptions? autoScroll,
+    DragSelectionOptions? dragSelection,
   }) {
     return SelectionOptions(
       haptics: haptics ?? this.haptics,
       behavior: behavior ?? this.behavior,
       constraints: constraints ?? this.constraints,
       autoScroll: autoScroll ?? this.autoScroll,
+      dragSelection: dragSelection ?? this.dragSelection,
     );
   }
 }

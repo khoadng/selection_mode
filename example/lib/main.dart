@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Import your demo files
 import 'basic_list_demo.dart';
 import 'mixed_selection_demo.dart';
 import 'grid_selection_demo.dart';

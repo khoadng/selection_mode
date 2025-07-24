@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'selection_constraints.dart';
+import '../options/selection_constraints.dart';
 
 /// Result of a drag update operation
 class DragUpdateResult {

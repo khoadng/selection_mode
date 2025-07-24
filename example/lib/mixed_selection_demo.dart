@@ -85,13 +85,15 @@ class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
               children: [
                 const _BehaviorIndicator(),
                 Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.only(top: 8, bottom: 80),
-                    itemCount: _items.length,
-                    itemBuilder: (context, index) {
-                      final item = _items[index];
-                      return _buildItemWidget(item, index);
-                    },
+                  child: SelectionCanvas(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.only(top: 8, bottom: 80),
+                      itemCount: _items.length,
+                      itemBuilder: (context, index) {
+                        final item = _items[index];
+                        return _buildItemWidget(item, index);
+                      },
+                    ),
                   ),
                 ),
               ],
