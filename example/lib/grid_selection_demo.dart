@@ -46,6 +46,10 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
 
     return SelectionMode(
       scrollController: _scrollController,
+      options: const SelectionOptions(
+        haptics: HapticFeedbackResolver.all,
+        dragSelection: DragSelectionOptions(),
+      ),
       controller: _controller,
       child: Scaffold(
         appBar: MaterialSelectionAppBar(

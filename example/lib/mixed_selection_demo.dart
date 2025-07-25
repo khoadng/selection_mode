@@ -65,6 +65,7 @@ class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
       options: SelectionOptions(
         constraints: SelectionConstraints(maxSelections: 5),
         behavior: SelectionBehavior.autoToggle,
+        dragSelection: DragSelectionOptions(),
       ),
       child: Scaffold(
         appBar: MaterialSelectionAppBar(

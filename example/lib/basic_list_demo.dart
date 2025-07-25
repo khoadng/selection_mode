@@ -25,7 +25,9 @@ class _BasicListDemoState extends State<BasicListDemo> {
     return SelectionMode(
       scrollController: _scrollController,
       controller: _controller,
-      options: const SelectionOptions(behavior: SelectionBehavior.manual),
+      options: const SelectionOptions(
+        behavior: SelectionBehavior.manual,
+      ),
       onModeChanged: (enabled) {
         print('Selection mode: $enabled');
       },
