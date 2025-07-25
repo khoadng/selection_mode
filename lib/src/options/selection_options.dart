@@ -33,9 +33,9 @@ class DragSelectionOptions {
 /// Configuration options for SelectionMode behavior
 class SelectionOptions {
   const SelectionOptions({
-    this.haptics = HapticFeedbackResolver.all,
+    this.haptics = HapticFeedbackResolver.modeOnly,
     this.behavior = SelectionBehavior.autoEnable,
-    this.dragSelection = const DragSelectionOptions(),
+    this.dragSelection,
     this.autoScroll = const SelectionAutoScrollOptions(),
     this.constraints,
   });
