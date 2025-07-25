@@ -79,17 +79,9 @@ class DragOperations {
       return;
     }
 
-    // Trigger haptic for newly selected/deselected items during drag
-    if (result.newlySelected.isNotEmpty) {
-      for (final _ in result.newlySelected) {
-        _controller._triggerHaptic(HapticEvent.itemSelectedInRange);
-      }
-    }
-
-    if (result.newlyDeselected.isNotEmpty) {
-      for (final _ in result.newlyDeselected) {
-        _controller._triggerHaptic(HapticEvent.itemDeselectedInRange);
-      }
+    // Batch haptic feedback for drag selection changes
+    if (result.newlySelected.isNotEmpty || result.newlyDeselected.isNotEmpty) {
+      _controller._triggerHaptic(HapticEvent.rangeSelection);
     }
 
     if (result.hitLimit) {
