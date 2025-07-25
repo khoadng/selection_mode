@@ -20,15 +20,10 @@ void main() {
       controller.toggleItem(0);
       expect(controller.isActive, isTrue);
 
-      // Range select
-      controller.setRangeAnchor(0);
-      controller.handleSelection(4, isShiftPressed: true);
-      expect(controller.selection, equals({0, 1, 2, 3, 4}));
-
       // Drag selection
       controller.startRangeSelection(6);
       controller.handleDragOver(8);
-      expect(controller.selection, equals({0, 1, 2, 3, 4, 6, 7, 8}));
+      expect(controller.selection, equals({0, 6, 7, 8}));
       controller.endRangeSelection();
 
       // Auto-disable when cleared

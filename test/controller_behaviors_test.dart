@@ -130,7 +130,7 @@ void main() {
       });
     });
 
-    group('Implicit Behavior', () {
+    group('AutoToggle Behavior', () {
       test('auto-enables on first selection', () {
         final controller = SelectionModeController();
         controller.updateOptions(
@@ -221,37 +221,6 @@ void main() {
     });
 
     group('Behavior Consistency', () {
-      test('handleSelection respects behavior modes', () {
-        final manualController = SelectionModeController();
-        manualController.updateOptions(
-          const SelectionOptions(
-            behavior: SelectionBehavior.manual,
-          ),
-        );
-        manualController.registerTestItems(5);
-
-        final autoController = SelectionModeController();
-        autoController.updateOptions(
-          const SelectionOptions(
-            behavior: SelectionBehavior.autoEnable,
-          ),
-        );
-        autoController.registerTestItems(5);
-
-        // Manual should not work when disabled
-        manualController.handleSelection(0);
-        expect(manualController.isActive, isFalse);
-        expect(manualController.isSelected(0), isFalse);
-
-        // AutoEnable should work when disabled
-        autoController.handleSelection(0);
-        expect(autoController.isActive, isTrue);
-        expect(autoController.isSelected(0), isTrue);
-
-        manualController.dispose();
-        autoController.dispose();
-      });
-
       test('invertSelection respects behavior modes', () {
         final manualController = SelectionModeController();
         manualController.updateOptions(

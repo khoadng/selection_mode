@@ -12,3 +12,4 @@ export 'src/options/auto_scroll_options.dart';
 export 'src/widgets/selection_consumer.dart';
 export 'src/widgets/drag_selection_ignore.dart';
 export 'src/core/selection_canvas.dart';
+export 'src/core/selection_shortcuts.dart';

@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui';
 import '../options/selection_constraints.dart';
 
 /// Result of a drag update operation
@@ -22,9 +23,11 @@ class DragSelectionManager {
   Set<int> _preDragSelection = {};
   Set<int> _previousDragSelection = {};
   int? _dragAnchor;
+  Offset? _currentDragPosition;
 
   bool get isDragInProgress => _isDragInProgress;
   int? get dragAnchor => _dragAnchor;
+  Offset? get currentDragPosition => _currentDragPosition;
 
   /// Start a drag selection operation
   void startDrag(int anchorIndex, Set<int> currentSelection) {
@@ -32,6 +35,14 @@ class DragSelectionManager {
     _dragAnchor = anchorIndex;
     _preDragSelection = Set<int>.from(currentSelection);
     _previousDragSelection = Set<int>.from(currentSelection);
+  }
+
+  void setDragPosition(Offset position) {
+    _currentDragPosition = position;
+  }
+
+  void clearDragPosition() {
+    _currentDragPosition = null;
   }
 
   /// Calculate new selection during drag over operation
@@ -99,6 +110,7 @@ class DragSelectionManager {
     _dragAnchor = null;
     _preDragSelection.clear();
     _previousDragSelection.clear();
+    _currentDragPosition = null;
   }
 
   /// Cancel the drag and restore pre-drag state

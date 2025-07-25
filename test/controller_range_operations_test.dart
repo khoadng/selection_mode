@@ -46,17 +46,6 @@ void main() {
 
         expect(controller.selection, equals({0, 2, 4}));
       });
-
-      test('range queries work correctly', () {
-        controller.registerTestItems(15);
-        controller.enable();
-        controller.selectRange(2, 8);
-
-        expect(controller.getSelectedCountInRange(4, 6), equals(3));
-        expect(controller.hasSelectionInRange(1, 3), isTrue);
-        expect(controller.hasSelectionInRange(9, 10), isFalse);
-        expect(controller.isRangeFullySelected(3, 5), isTrue);
-      });
     });
   });
 }

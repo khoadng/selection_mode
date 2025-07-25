@@ -238,16 +238,6 @@ controller.disable();
 controller.toggle();
 ```
 
-### Range Queries
-```dart
-// Range information
-final count = controller.getSelectedCountInRange(0, 10);
-final hasSelection = controller.hasSelectionInRange(5, 8);
-final fullySelected = controller.isRangeFullySelected(2, 6);
-final selectedInRange = controller.getSelectedInRange(0, 10);
-final selectableInRange = controller.getSelectableInRange(0, 10);
-```
-
 ## UI Components
 
 ### Selection App Bar

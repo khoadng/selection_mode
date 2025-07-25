@@ -53,7 +53,10 @@ class RangeManager {
 
   /// Calculate range deselection
   Set<int> calculateRangeDeselection(
-      Set<int> currentSelection, int from, int to) {
+    Set<int> currentSelection,
+    int from,
+    int to,
+  ) {
     final start = math.min(from, to);
     final end = math.max(from, to);
     final newSelection = Set<int>.from(currentSelection);
@@ -103,48 +106,6 @@ class RangeManager {
   int? getShiftSelectionTarget(int index) {
     if (!isSelectable(index)) return null;
     return _anchor;
-  }
-
-  // Query methods
-  List<int> getSelectedInRange(Set<int> selection, int from, int to) {
-    final start = math.min(from, to);
-    final end = math.max(from, to);
-    return selection.where((item) => item >= start && item <= end).toList()
-      ..sort();
-  }
-
-  List<int> getSelectableInRange(int from, int to) {
-    final start = math.min(from, to);
-    final end = math.max(from, to);
-    final selectable = <int>[];
-    for (int i = start; i <= end; i++) {
-      if (isSelectable(i)) selectable.add(i);
-    }
-    return selectable;
-  }
-
-  int getSelectedCountInRange(Set<int> selection, int from, int to) {
-    final start = math.min(from, to);
-    final end = math.max(from, to);
-    return selection.where((item) => item >= start && item <= end).length;
-  }
-
-  bool hasSelectionInRange(Set<int> selection, int from, int to) {
-    final start = math.min(from, to);
-    final end = math.max(from, to);
-    return selection.any((item) => item >= start && item <= end);
-  }
-
-  bool isRangeFullySelected(Set<int> selection, int from, int to) {
-    final start = math.min(from, to);
-    final end = math.max(from, to);
-
-    for (int i = start; i <= end; i++) {
-      if (isSelectable(i) && !selection.contains(i)) {
-        return false;
-      }
-    }
-    return getSelectableInRange(from, to).isNotEmpty;
   }
 
   void dispose() {

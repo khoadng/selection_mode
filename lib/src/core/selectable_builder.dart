@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:selection_mode/selection_mode.dart';
+import 'selection_item_info.dart';
 
 /// A builder widget that provides selection state and gestures for an indexed item.
 ///
@@ -68,25 +69,23 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
     );
   }
 
+  void _registerWithController(SelectionModeController controller) {
+    controller.register(SelectionItemInfo(
+      index: widget.index,
+      identifier: _getIdentifier(),
+      isSelectable: widget.isSelectable,
+      positionCallback: _getCurrentBounds,
+    ));
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final controller = SelectionMode.of(context);
     if (_controller != controller) {
-      _controller?.unregisterItem(widget.index);
-      _controller?.unregisterPositionCallback(widget.index);
-
+      _controller?.unregister(widget.index);
       _controller = controller;
-      controller.registerItem(
-        widget.index,
-        _getIdentifier(),
-        widget.isSelectable,
-      );
-
-      controller.registerPositionCallback(
-        widget.index,
-        _getCurrentBounds,
-      );
+      _registerWithController(controller);
     }
   }
 
@@ -102,18 +101,10 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
     if (oldIdentifier != newIdentifier ||
         oldWidget.index != widget.index ||
         oldWidget.isSelectable != widget.isSelectable) {
-      _controller?.unregisterItem(oldWidget.index);
-      _controller?.unregisterPositionCallback(oldWidget.index);
-      _controller?.registerItem(
-        widget.index,
-        newIdentifier,
-        widget.isSelectable,
-      );
-
-      _controller?.registerPositionCallback(
-        widget.index,
-        _getCurrentBounds,
-      );
+      _controller?.unregister(oldWidget.index);
+      if (_controller != null) {
+        _registerWithController(_controller!);
+      }
     }
   }
 

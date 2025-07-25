@@ -60,7 +60,7 @@ class _SelectionModeState extends State<SelectionMode> {
     _controller.initializeOptions(_effectiveOptions);
     _enable = ValueNotifier(_controller.isActive);
     _previousActive = _controller.isActive;
-    _previousSelection = Set.from(_controller.selection);
+    _previousSelection = Set.from(_controller.visibleSelection);
     _controller.addListener(_onControllerChanged);
   }
 
@@ -86,7 +86,7 @@ class _SelectionModeState extends State<SelectionMode> {
       _controller.updateOptions(_effectiveOptions);
       _enable.value = _controller.isActive;
       _previousActive = _controller.isActive;
-      _previousSelection = Set.from(_controller.selection);
+      _previousSelection = Set.from(_controller.visibleSelection);
       _controller.addListener(_onControllerChanged);
       _setupAutoScroll();
     }
@@ -121,7 +121,7 @@ class _SelectionModeState extends State<SelectionMode> {
 
   void _onControllerChanged() {
     final currentEnabled = _controller.isActive;
-    final currentSelection = _controller.selection;
+    final currentSelection = _controller.visibleSelection;
     _enable.value = currentEnabled;
 
     if (_previousActive != currentEnabled) {
