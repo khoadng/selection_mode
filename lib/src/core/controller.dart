@@ -40,14 +40,12 @@ class SelectionModeController extends ChangeNotifier {
   late final RangeManager _rangeManager;
   AutoScrollManager? _autoScrollManager;
 
-  Offset? _currentDragPosition;
   final Map<int, Rect? Function()> positionCallbacks = {};
 
   bool get isActive => _enabled;
   Set<int> get selection => _stateManager.selection;
   bool get isDragInProgress => _dragManager.isDragInProgress;
-
-  AutoScrollManager? get autoScrollManager => _autoScrollManager;
+  bool get isAutoScrolling => _autoScrollManager?.isScrolling ?? false;
 
   void registerItem(int index, Object identifier, bool isSelectable) {
     _stateManager.registerItem(index, identifier);
@@ -134,7 +132,6 @@ class SelectionModeController extends ChangeNotifier {
     _rangeManager.clearAnchor();
     _dragManager.endDrag();
     _autoScrollManager?.stopDragAutoScroll();
-    _currentDragPosition = null;
     notifyListeners();
   }
 
@@ -147,7 +144,6 @@ class SelectionModeController extends ChangeNotifier {
       _rangeManager.clearAnchor();
       _dragManager.endDrag();
       _autoScrollManager?.stopDragAutoScroll();
-      _currentDragPosition = null;
     }
     notifyListeners();
   }
@@ -250,7 +246,6 @@ class SelectionModeController extends ChangeNotifier {
       _rangeManager.clearAnchor();
       _dragManager.endDrag();
       _autoScrollManager?.stopDragAutoScroll();
-      _currentDragPosition = null;
     }
   }
 

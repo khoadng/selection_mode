@@ -49,7 +49,7 @@ class DragOperations {
   void handleDragUpdate(Offset globalPosition) {
     if (!dragManager.isDragInProgress) return;
 
-    _controller._currentDragPosition = globalPosition;
+    dragManager.setDragPosition(globalPosition);
 
     if (autoScrollManager != null) {
       final viewportSize = autoScrollManager!.getViewportSize();
@@ -108,14 +108,14 @@ class DragOperations {
   void endRangeSelection() {
     dragManager.endDrag();
     autoScrollManager?.stopDragAutoScroll();
-    _controller._currentDragPosition = null;
     _controller._checkAutoDisable();
   }
 
   void onAutoScrollUpdate() {
     // Handle item-to-item drag selection during auto-scroll
     if (dragManager.isDragInProgress) {
-      if (_controller._currentDragPosition case final Offset position) {
+      final position = dragManager.currentDragPosition;
+      if (position != null) {
         _checkItemUnderPointer(position);
       }
     }
