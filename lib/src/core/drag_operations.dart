@@ -27,7 +27,7 @@ class DragOperations {
       events.add(HapticEvent.modeEnabled);
     }
 
-    dragManager.startDrag(index, _controller.selection);
+    dragManager.startDrag(index, _controller.visibleSelection);
     rangeManager.setAnchor(index);
     autoScrollManager?.startDragAutoScroll();
     events.add(HapticEvent.dragStart);
@@ -77,7 +77,7 @@ class DragOperations {
     );
 
     // Early return if selection hasn't changed
-    final currentSelection = _controller.selection;
+    final currentSelection = _controller.visibleSelection;
     if (result.newSelection.length == currentSelection.length &&
         result.newSelection.containsAll(currentSelection)) {
       return;

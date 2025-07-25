@@ -8,12 +8,25 @@ class SelectionStateManager {
   final Map<int, Object> _indexToIdentifier = <int, Object>{};
 
   /// Current selection as indices
-  Set<int> get selection {
+  Set<int> get visibleSelection {
     return _selectedIdentifiers
         .map((id) => _identifierToIndex[id])
         .where((index) => index != null)
         .cast<int>()
         .toSet();
+  }
+
+  Set<int> get selection {
+    final result = <int>{};
+    for (final identifier in _selectedIdentifiers) {
+      final index = _identifierToIndex[identifier];
+      if (index != null) {
+        result.add(index);
+      } else if (identifier is int) {
+        result.add(identifier);
+      }
+    }
+    return result;
   }
 
   /// Check if an item is selected

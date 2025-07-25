@@ -67,7 +67,7 @@ class SelectionOperations {
     }
 
     final result = rangeManager.calculateRangeSelection(
-      _controller.selection,
+      _controller.visibleSelection,
       from,
       to,
       _controller._options.constraints?.maxSelections ?? -1,
@@ -91,7 +91,7 @@ class SelectionOperations {
   }
 
   void deselectRange(int from, int to) {
-    final currentIndexSelection = _controller.selection;
+    final currentIndexSelection = _controller.visibleSelection;
     final newSelection =
         rangeManager.calculateRangeDeselection(currentIndexSelection, from, to);
 
@@ -118,7 +118,7 @@ class SelectionOperations {
       events.add(HapticEvent.modeEnabled);
     }
 
-    final currentIndexSelection = _controller.selection;
+    final currentIndexSelection = _controller.visibleSelection;
     final result = rangeManager.calculateRangeToggle(
       currentIndexSelection,
       from,
@@ -201,7 +201,7 @@ class SelectionOperations {
 
     final selectableItems =
         selectabilityManager.filterSelectable(allItems).toSet();
-    final currentSelection = _controller.selection;
+    final currentSelection = _controller.visibleSelection;
     final newSelection = selectableItems..removeAll(currentSelection);
 
     stateManager.clearIdentifiers();

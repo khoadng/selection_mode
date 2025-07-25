@@ -47,6 +47,7 @@ class SelectionModeController extends ChangeNotifier {
   final Map<int, Rect? Function()> positionCallbacks = {};
 
   bool get isActive => _enabled;
+  Set<int> get visibleSelection => _stateManager.visibleSelection;
   Set<int> get selection => _stateManager.selection;
   bool get isDragInProgress => _dragManager.isDragInProgress;
   bool get isAutoScrolling => _autoScrollManager?.isScrolling ?? false;
@@ -95,7 +96,7 @@ class SelectionModeController extends ChangeNotifier {
     final maxSelections = options.constraints?.maxSelections;
 
     if (maxSelections != null && _stateManager.length > maxSelections) {
-      final currentSelection = _stateManager.selection.toList();
+      final currentSelection = _stateManager.visibleSelection.toList();
       final toRemove = currentSelection.skip(maxSelections);
 
       for (final index in toRemove) {
@@ -191,15 +192,15 @@ class SelectionModeController extends ChangeNotifier {
   bool isSelectable(int index) => _selectabilityManager.isSelectable(index);
   bool isSelected(int item) => _stateManager.isSelected(item);
   List<int> getSelectedInRange(int from, int to) =>
-      _rangeManager.getSelectedInRange(selection, from, to);
+      _rangeManager.getSelectedInRange(visibleSelection, from, to);
   List<int> getSelectableInRange(int from, int to) =>
       _rangeManager.getSelectableInRange(from, to);
   int getSelectedCountInRange(int from, int to) =>
-      _rangeManager.getSelectedCountInRange(selection, from, to);
+      _rangeManager.getSelectedCountInRange(visibleSelection, from, to);
   bool hasSelectionInRange(int from, int to) =>
-      _rangeManager.hasSelectionInRange(selection, from, to);
+      _rangeManager.hasSelectionInRange(visibleSelection, from, to);
   bool isRangeFullySelected(int from, int to) =>
-      _rangeManager.isRangeFullySelected(selection, from, to);
+      _rangeManager.isRangeFullySelected(visibleSelection, from, to);
 
   void handleSelection(
     int index, {
