@@ -102,8 +102,14 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
         ),
         body: Stack(
           children: [
-            SelectionCanvas(
-              child: _buildGrid(),
+            SelectionShortcuts(
+              totalItems: _visiblePhotos.length,
+              child: Focus(
+                autofocus: true,
+                child: SelectionCanvas(
+                  child: _buildGrid(),
+                ),
+              ),
             ),
             Positioned(
               left: 24,
