@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/controller.dart';
 import '../core/selection_mode.dart';
+import '../options/selection_options.dart';
 
-// Intents for selection actions
 class SelectAllIntent extends Intent {
   const SelectAllIntent();
 }
@@ -12,7 +12,6 @@ class ExitSelectionModeIntent extends Intent {
   const ExitSelectionModeIntent();
 }
 
-// Actions that handle the intents
 class SelectAllAction extends Action<SelectAllIntent> {
   SelectAllAction(this.controller, this.totalItems);
 
@@ -21,7 +20,15 @@ class SelectAllAction extends Action<SelectAllIntent> {
 
   @override
   bool isEnabled(SelectAllIntent intent) {
-    return controller.isActive && totalItems != null;
+    if (totalItems == null) return false;
+
+    // Manual mode requires active state
+    if (controller.options.behavior == SelectionBehavior.manual) {
+      return controller.isActive;
+    }
+
+    // Auto modes work regardless of current state
+    return true;
   }
 
   @override
