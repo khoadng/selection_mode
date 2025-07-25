@@ -9,11 +9,14 @@ class SelectionStateManager {
 
   /// Current selection as indices
   Set<int> get visibleSelection {
-    return _selectedIdentifiers
-        .map((id) => _identifierToIndex[id])
-        .where((index) => index != null)
-        .cast<int>()
-        .toSet();
+    final result = <int>{};
+    for (final id in _selectedIdentifiers) {
+      final index = _identifierToIndex[id];
+      if (index != null) {
+        result.add(index);
+      }
+    }
+    return result;
   }
 
   Set<int> get selection {
