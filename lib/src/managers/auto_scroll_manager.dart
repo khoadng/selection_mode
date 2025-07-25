@@ -3,8 +3,6 @@ import 'package:flutter/widgets.dart';
 
 import '../options/auto_scroll_options.dart';
 
-enum ScrollDirection { up, down, none }
-
 /// Manages auto-scrolling during drag selection
 class AutoScrollManager {
   AutoScrollManager({
@@ -18,11 +16,11 @@ class AutoScrollManager {
   VoidCallback? onScrollUpdate;
 
   Ticker? _ticker;
-  ScrollDirection _direction = ScrollDirection.none;
+  AxisDirection? _direction;
   double _speed = 0.0;
 
   bool get isScrolling =>
-      _ticker?.isActive == true && _direction != ScrollDirection.none;
+      _ticker?.isActive == true && _direction != null && _speed > 0;
 
   Size? getViewportSize() {
     if (!scrollController.hasClients) return null;
@@ -38,7 +36,7 @@ class AutoScrollManager {
   }
 
   /// Update scroll parameters during drag
-  void updateScrollParams(ScrollDirection direction, double speed) {
+  void updateScrollParams(AxisDirection? direction, double speed) {
     _direction = direction;
     _speed = speed;
   }
@@ -47,11 +45,14 @@ class AutoScrollManager {
   void handleDragUpdate(Offset globalPosition, Size viewportSize) {
     if (!scrollController.hasClients) return;
 
-    final direction = _calculateScrollDirection(globalPosition, viewportSize);
+    final axis = scrollController.position.axis;
+    final direction =
+        _calculateScrollDirection(globalPosition, viewportSize, axis);
     final speed = _calculateScrollSpeed(
       globalPosition,
       viewportSize,
       direction,
+      axis,
     );
 
     updateScrollParams(direction, speed);
@@ -61,12 +62,12 @@ class AutoScrollManager {
   void stopDragAutoScroll() {
     _ticker?.dispose();
     _ticker = null;
-    _direction = ScrollDirection.none;
+    _direction = null;
     _speed = 0.0;
   }
 
   void _performScroll(Duration elapsed) {
-    if (_direction == ScrollDirection.none || _speed <= 0) return;
+    if (_direction == null || _speed <= 0) return;
 
     if (!scrollController.hasClients) {
       stopDragAutoScroll();
@@ -78,68 +79,80 @@ class AutoScrollManager {
     final maxOffset = scrollController.position.maxScrollExtent;
     final minOffset = scrollController.position.minScrollExtent;
 
-    final newOffset = switch (_direction) {
-      ScrollDirection.up => (currentOffset - increment).clamp(
+    final newOffset = switch (_direction!) {
+      AxisDirection.up ||
+      AxisDirection.left =>
+        (currentOffset - increment).clamp(
           minOffset,
           maxOffset,
         ),
-      ScrollDirection.down => (currentOffset + increment).clamp(
+      AxisDirection.down ||
+      AxisDirection.right =>
+        (currentOffset + increment).clamp(
           minOffset,
           maxOffset,
         ),
-      ScrollDirection.none => currentOffset,
     };
 
     if (newOffset != currentOffset) {
       scrollController.jumpTo(newOffset);
       onScrollUpdate?.call();
     } else {
-      updateScrollParams(ScrollDirection.none, 0.0);
+      updateScrollParams(null, 0.0);
     }
   }
 
-  ScrollDirection _calculateScrollDirection(
+  AxisDirection? _calculateScrollDirection(
     Offset globalPosition,
     Size viewportSize,
+    Axis axis,
   ) {
+    final (position, size) = switch (axis) {
+      Axis.vertical => (globalPosition.dy, viewportSize.height),
+      Axis.horizontal => (globalPosition.dx, viewportSize.width),
+    };
+
     // Stop if pointer is in center area (away from edges)
-    if (globalPosition.dy > config.edgeThreshold &&
-        globalPosition.dy < viewportSize.height - config.edgeThreshold) {
-      return ScrollDirection.none;
+    if (position > config.edgeThreshold &&
+        position < size - config.edgeThreshold) {
+      return null;
     }
 
-    // Scroll up when pointer is at top edge or above viewport
-    if (globalPosition.dy <= config.edgeThreshold) {
-      return ScrollDirection.up;
+    // Scroll towards start when pointer is at start edge or beyond viewport
+    if (position <= config.edgeThreshold) {
+      return axis == Axis.vertical ? AxisDirection.up : AxisDirection.left;
     }
 
-    // Scroll down when pointer is at bottom edge or below viewport
-    if (globalPosition.dy >= viewportSize.height - config.edgeThreshold) {
-      return ScrollDirection.down;
+    // Scroll towards end when pointer is at end edge or beyond viewport
+    if (position >= size - config.edgeThreshold) {
+      return axis == Axis.vertical ? AxisDirection.down : AxisDirection.right;
     }
 
-    return ScrollDirection.none;
+    return null;
   }
 
   double _calculateScrollSpeed(
     Offset globalPosition,
     Size viewportSize,
-    ScrollDirection direction,
+    AxisDirection? direction,
+    Axis axis,
   ) {
-    if (direction == ScrollDirection.none) return 0.0;
+    if (direction == null) return 0.0;
+
+    final (position, size) = switch (axis) {
+      Axis.vertical => (globalPosition.dy, viewportSize.height),
+      Axis.horizontal => (globalPosition.dx, viewportSize.width),
+    };
 
     final (distanceFromEdge, beyondDistance) = switch (direction) {
-      ScrollDirection.up => (
-          globalPosition.dy,
-          globalPosition.dy < 0 ? -globalPosition.dy : 0.0
+      AxisDirection.up || AxisDirection.left => (
+          position,
+          position < 0 ? -position : 0.0
         ),
-      ScrollDirection.down => (
-          viewportSize.height - globalPosition.dy,
-          globalPosition.dy > viewportSize.height
-              ? globalPosition.dy - viewportSize.height
-              : 0.0
+      AxisDirection.down || AxisDirection.right => (
+          size - position,
+          position > size ? position - size : 0.0
         ),
-      ScrollDirection.none => (0.0, 0.0),
     };
 
     // Beyond viewport: progressive acceleration

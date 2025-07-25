@@ -66,16 +66,6 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
               onPressed: () => setState(() => _showHidden = !_showHidden),
             ),
             IconButton(
-              icon: Icon(
-                _isHorizontalScroll ? Icons.view_column : Icons.view_agenda,
-              ),
-              tooltip: _isHorizontalScroll
-                  ? 'Vertical scroll'
-                  : 'Horizontal scroll',
-              onPressed: () =>
-                  setState(() => _isHorizontalScroll = !_isHorizontalScroll),
-            ),
-            IconButton(
               icon: const Icon(Icons.shuffle),
               tooltip: 'Random Reorder',
               onPressed: _randomReorder,
