@@ -132,6 +132,8 @@ class SelectionModeController extends ChangeNotifier {
     _rangeManager.clearAnchor();
     _dragManager.endDrag();
     _autoScrollManager?.stopDragAutoScroll();
+    positionCallbacks.clear();
+
     notifyListeners();
   }
 
