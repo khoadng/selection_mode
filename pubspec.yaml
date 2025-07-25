@@ -1,6 +1,6 @@
 name: selection_mode
 description: "A Flutter package for multi-item selection with range selection"
-version: 0.0.4
+version: 0.0.5
 homepage: https://github.com/khoadng/selection_mode
 repository: https://github.com/khoadng/selection_mode
 issue_tracker: https://github.com/khoadng/selection_mode/issues
