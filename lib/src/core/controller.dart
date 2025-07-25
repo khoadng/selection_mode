@@ -44,6 +44,7 @@ class SelectionModeController extends ChangeNotifier {
   AutoScrollManager? _autoScrollManager;
   late HapticCoordinator _hapticCoordinator;
 
+  @internal
   final Map<int, Rect? Function()> positionCallbacks = {};
 
   // --- Public Methods ---
