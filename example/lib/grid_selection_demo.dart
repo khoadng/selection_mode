@@ -22,6 +22,7 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
   );
 
   bool _showHidden = false;
+  bool _isHorizontalScroll = false;
   int _currentNavIndex = 0;
 
   List<Photo> get _visiblePhotos =>
@@ -65,6 +66,16 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
               onPressed: () => setState(() => _showHidden = !_showHidden),
             ),
             IconButton(
+              icon: Icon(
+                _isHorizontalScroll ? Icons.view_column : Icons.view_agenda,
+              ),
+              tooltip: _isHorizontalScroll
+                  ? 'Vertical scroll'
+                  : 'Horizontal scroll',
+              onPressed: () =>
+                  setState(() => _isHorizontalScroll = !_isHorizontalScroll),
+            ),
+            IconButton(
               icon: const Icon(Icons.shuffle),
               tooltip: 'Random Reorder',
               onPressed: _randomReorder,
@@ -102,6 +113,18 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
                 ),
               ],
             ),
+            actions: [
+              IconButton(
+                icon: Icon(
+                  _isHorizontalScroll ? Icons.view_column : Icons.view_agenda,
+                ),
+                tooltip: _isHorizontalScroll
+                    ? 'Switch to vertical'
+                    : 'Switch to horizontal',
+                onPressed: () =>
+                    setState(() => _isHorizontalScroll = !_isHorizontalScroll),
+              ),
+            ],
           ),
         ),
         body: Stack(
@@ -145,11 +168,13 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
             ),
           ],
         ),
-        bottomNavigationBar: _SelectionAwareBottomNav(
-          controller: _controller,
-          currentIndex: _currentNavIndex,
-          onTap: (index) => setState(() => _currentNavIndex = index),
-        ),
+        bottomNavigationBar: _isHorizontalScroll
+            ? null
+            : _SelectionAwareBottomNav(
+                controller: _controller,
+                currentIndex: _currentNavIndex,
+                onTap: (index) => setState(() => _currentNavIndex = index),
+              ),
       ),
     );
   }
@@ -159,6 +184,7 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
 
     return GridView.builder(
       controller: _scrollController,
+      scrollDirection: _isHorizontalScroll ? Axis.horizontal : Axis.vertical,
       padding: const EdgeInsets.all(8),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
