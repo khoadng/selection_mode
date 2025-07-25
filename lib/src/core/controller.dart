@@ -7,6 +7,7 @@ import '../managers/range_manager.dart';
 import '../managers/selectability_manager.dart';
 import '../managers/drag_selection_manager.dart';
 import '../managers/selection_state_manager.dart';
+import 'selection_item_info.dart';
 
 part 'selection_operations.dart';
 part 'drag_operations.dart';
@@ -47,13 +48,17 @@ class SelectionModeController extends ChangeNotifier {
   bool get isDragInProgress => _dragManager.isDragInProgress;
   bool get isAutoScrolling => _autoScrollManager?.isScrolling ?? false;
 
-  void registerItem(int index, Object identifier, bool isSelectable) {
-    _stateManager.registerItem(index, identifier);
-    _selectabilityManager.setSelectable(index, isSelectable);
+  void register(SelectionItemInfo info) {
+    _stateManager.registerItem(info.index, info.identifier);
+    _selectabilityManager.setSelectable(info.index, info.isSelectable);
 
-    if (!isSelectable && _stateManager.isSelected(index)) {
-      _stateManager.removeIdentifier(identifier);
-      if (_rangeManager.anchor == index) {
+    if (info.positionCallback != null) {
+      positionCallbacks[info.index] = info.positionCallback!;
+    }
+
+    if (!info.isSelectable && _stateManager.isSelected(info.index)) {
+      _stateManager.removeIdentifier(info.identifier);
+      if (_rangeManager.anchor == info.index) {
         _rangeManager.clearAnchor();
       }
       _checkAutoDisable();
@@ -61,22 +66,15 @@ class SelectionModeController extends ChangeNotifier {
     }
   }
 
-  void unregisterItem(int index, {bool? trackId}) {
+  void unregister(int index) {
     _stateManager.unregisterItem(index);
     _selectabilityManager.removeItem(index);
+    positionCallbacks.remove(index);
 
     if (_rangeManager.anchor == index) {
       _rangeManager.clearAnchor();
     }
     _checkAutoDisable();
-  }
-
-  void registerPositionCallback(int index, Rect? Function() callback) {
-    positionCallbacks[index] = callback;
-  }
-
-  void unregisterPositionCallback(int index) {
-    positionCallbacks.remove(index);
   }
 
   void setAutoScrollManager(AutoScrollManager? manager) {
@@ -165,7 +163,7 @@ class SelectionModeController extends ChangeNotifier {
   }
 
   void removeItem(int index) {
-    unregisterItem(index);
+    unregister(index);
     notifyListeners();
   }
 
