@@ -7,6 +7,7 @@ import '../managers/range_manager.dart';
 import '../managers/selectability_manager.dart';
 import '../managers/drag_selection_manager.dart';
 import '../managers/selection_state_manager.dart';
+import '../managers/haptic_coordinator.dart';
 import 'selection_item_info.dart';
 
 part 'selection_operations.dart';
@@ -24,6 +25,7 @@ class SelectionModeController extends ChangeNotifier {
 
     _selectionOps = SelectionOperations(this);
     _dragOps = DragOperations(this);
+    _hapticCoordinator = HapticCoordinator(_options.haptics);
   }
 
   late final SelectionOperations _selectionOps;
@@ -40,6 +42,7 @@ class SelectionModeController extends ChangeNotifier {
 
   late final RangeManager _rangeManager;
   AutoScrollManager? _autoScrollManager;
+  late HapticCoordinator _hapticCoordinator;
 
   final Map<int, Rect? Function()> positionCallbacks = {};
 
@@ -87,6 +90,8 @@ class SelectionModeController extends ChangeNotifier {
 
   void _applyOptions(SelectionOptions options) {
     _options = options;
+    _hapticCoordinator = HapticCoordinator(options.haptics);
+
     final maxSelections = options.constraints?.maxSelections;
 
     if (maxSelections != null && _stateManager.length > maxSelections) {
@@ -112,7 +117,7 @@ class SelectionModeController extends ChangeNotifier {
 
   void enable({List<int>? initialSelected}) {
     _setEnabled(true);
-    _triggerHaptic(HapticEvent.modeEnabled);
+    _hapticCoordinator.trigger(HapticEvent.modeEnabled);
     if (initialSelected != null) {
       final selectableInitial =
           _selectabilityManager.filterSelectable(initialSelected);
@@ -123,7 +128,7 @@ class SelectionModeController extends ChangeNotifier {
 
   void disable({bool clearSelection = true}) {
     _setEnabled(false);
-    _triggerHaptic(HapticEvent.modeDisabled);
+    _hapticCoordinator.trigger(HapticEvent.modeDisabled);
     if (clearSelection) {
       _stateManager.clearIdentifiers();
     }
@@ -138,9 +143,9 @@ class SelectionModeController extends ChangeNotifier {
   void toggle() {
     _setEnabled(!_enabled);
     if (_enabled) {
-      _triggerHaptic(HapticEvent.modeEnabled);
+      _hapticCoordinator.trigger(HapticEvent.modeEnabled);
     } else {
-      _triggerHaptic(HapticEvent.modeDisabled);
+      _hapticCoordinator.trigger(HapticEvent.modeDisabled);
       _rangeManager.clearAnchor();
       _dragManager.endDrag();
       _autoScrollManager?.stopDragAutoScroll();
@@ -205,7 +210,7 @@ class SelectionModeController extends ChangeNotifier {
 
     if (!_enabled && _shouldAutoEnable()) {
       _setEnabled(true);
-      _triggerHaptic(HapticEvent.modeEnabled);
+      _hapticCoordinator.trigger(HapticEvent.modeEnabled);
     }
 
     if ((isShiftPressed || isRangeMode)) {
@@ -242,7 +247,7 @@ class SelectionModeController extends ChangeNotifier {
         _stateManager.isEmpty &&
         _options.behavior == SelectionBehavior.autoToggle) {
       _setEnabled(false);
-      _triggerHaptic(HapticEvent.modeDisabled);
+      _hapticCoordinator.trigger(HapticEvent.modeDisabled);
       _rangeManager.clearAnchor();
       _dragManager.endDrag();
       _autoScrollManager?.stopDragAutoScroll();
@@ -263,17 +268,11 @@ class SelectionModeController extends ChangeNotifier {
         final identifier = _stateManager.getIdentifier(item);
         _stateManager.addIdentifier(identifier);
       } else if (!hitLimit) {
-        _triggerHaptic(HapticEvent.maxItemsReached);
+        _hapticCoordinator.trigger(HapticEvent.maxItemsReached);
         hitLimit = true;
         break;
       }
     }
-  }
-
-  void _triggerHaptic(HapticEvent event) {
-    final resolver = _options.haptics;
-    if (resolver == null) return;
-    resolver.call(event);
   }
 
   void _notify() => notifyListeners();

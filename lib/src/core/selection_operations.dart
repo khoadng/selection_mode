@@ -22,7 +22,7 @@ class SelectionOperations {
 
     if (stateManager.isSelected(item)) {
       stateManager.removeIdentifier(identifier);
-      _controller._triggerHaptic(HapticEvent.itemDeselected);
+      _controller._hapticCoordinator.trigger(HapticEvent.itemDeselected);
       if (rangeManager.anchor == item) {
         rangeManager.clearAnchor();
       }
@@ -33,17 +33,23 @@ class SelectionOperations {
           true;
 
       if (canAddMore) {
+        final events = <HapticEvent>[];
+
         if (!_controller._enabled && _controller._shouldAutoEnable()) {
           _controller._setEnabled(true);
-          _controller._triggerHaptic(HapticEvent.modeEnabled);
+          events.add(HapticEvent.modeEnabled);
         }
+
         stateManager.addIdentifier(identifier);
-        _controller._triggerHaptic(HapticEvent.itemSelected);
+        events.add(HapticEvent.itemSelected);
+
+        _controller._hapticCoordinator.triggerSequence(events);
+
         if (rangeManager.anchor == null) {
           rangeManager.setAnchor(item);
         }
       } else {
-        _controller._triggerHaptic(HapticEvent.maxItemsReached);
+        _controller._hapticCoordinator.trigger(HapticEvent.maxItemsReached);
         return;
       }
     }
@@ -53,9 +59,11 @@ class SelectionOperations {
   void selectRange(int from, int to) {
     if (_controller._shouldBlockManualSelection()) return;
 
+    final events = <HapticEvent>[];
+
     if (!_controller._enabled && _controller._shouldAutoEnable()) {
       _controller._setEnabled(true);
-      _controller._triggerHaptic(HapticEvent.modeEnabled);
+      events.add(HapticEvent.modeEnabled);
     }
 
     final result = rangeManager.calculateRangeSelection(
@@ -71,10 +79,13 @@ class SelectionOperations {
         stateManager.addIdentifier(identifier);
       }
 
+      events.add(HapticEvent.rangeSelection);
+
       if (result.hitLimit) {
-        _controller._triggerHaptic(HapticEvent.maxItemsReached);
+        events.add(HapticEvent.maxItemsReached);
       }
-      _controller._triggerHaptic(HapticEvent.rangeSelection);
+
+      _controller._hapticCoordinator.triggerSequence(events);
       _controller._notify();
     }
   }
@@ -100,9 +111,11 @@ class SelectionOperations {
   }
 
   void toggleRange(int from, int to) {
+    final events = <HapticEvent>[];
+
     if (!_controller._enabled && _controller._shouldAutoEnable()) {
       _controller._setEnabled(true);
-      _controller._triggerHaptic(HapticEvent.modeEnabled);
+      events.add(HapticEvent.modeEnabled);
     }
 
     final currentIndexSelection = _controller.selection;
@@ -132,10 +145,13 @@ class SelectionOperations {
       }
       _controller._checkAutoDisable();
 
+      events.add(HapticEvent.rangeSelection);
+
       if (result.hitLimit) {
-        _controller._triggerHaptic(HapticEvent.maxItemsReached);
+        events.add(HapticEvent.maxItemsReached);
       }
-      _controller._triggerHaptic(HapticEvent.rangeSelection);
+
+      _controller._hapticCoordinator.triggerSequence(events);
       _controller._notify();
     }
   }
@@ -152,9 +168,12 @@ class SelectionOperations {
     if (_controller._shouldBlockManualSelection()) {
       return;
     }
+
+    final events = <HapticEvent>[];
+
     if (!_controller._enabled && _controller._shouldAutoEnable()) {
       _controller._setEnabled(true);
-      _controller._triggerHaptic(HapticEvent.modeEnabled);
+      events.add(HapticEvent.modeEnabled);
     }
 
     final oldLength = stateManager.length;
@@ -162,7 +181,8 @@ class SelectionOperations {
     _controller._addToSelectionByIndex(selectableItems);
 
     if (stateManager.length != oldLength) {
-      _controller._triggerHaptic(HapticEvent.rangeSelection);
+      events.add(HapticEvent.rangeSelection);
+      _controller._hapticCoordinator.triggerSequence(events);
       _controller._notify();
     }
   }
@@ -172,9 +192,11 @@ class SelectionOperations {
       return;
     }
 
+    final events = <HapticEvent>[];
+
     if (!_controller._enabled && _controller._shouldAutoEnable()) {
       _controller._setEnabled(true);
-      _controller._triggerHaptic(HapticEvent.modeEnabled);
+      events.add(HapticEvent.modeEnabled);
     }
 
     final selectableItems =
@@ -186,7 +208,8 @@ class SelectionOperations {
     _controller._addToSelectionByIndex(newSelection);
 
     _controller._checkAutoDisable();
-    _controller._triggerHaptic(HapticEvent.rangeSelection);
+    events.add(HapticEvent.rangeSelection);
+    _controller._hapticCoordinator.triggerSequence(events);
     _controller._notify();
   }
 }

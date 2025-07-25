@@ -20,15 +20,17 @@ class DragOperations {
       return;
     }
 
+    final events = <HapticEvent>[];
+
     if (!_controller._enabled && _controller._shouldAutoEnable()) {
       _controller._setEnabled(true);
-      _controller._triggerHaptic(HapticEvent.modeEnabled);
+      events.add(HapticEvent.modeEnabled);
     }
 
     dragManager.startDrag(index, _controller.selection);
     rangeManager.setAnchor(index);
     autoScrollManager?.startDragAutoScroll();
-    _controller._triggerHaptic(HapticEvent.dragStart);
+    events.add(HapticEvent.dragStart);
 
     if (!_controller.isSelected(index)) {
       final canAddMore = _controller._options.constraints
@@ -38,12 +40,14 @@ class DragOperations {
       if (canAddMore) {
         final identifier = stateManager.getIdentifier(index);
         stateManager.addIdentifier(identifier);
-        _controller._triggerHaptic(HapticEvent.itemSelected);
+        events.add(HapticEvent.itemSelected);
         _controller._notify();
       } else {
-        _controller._triggerHaptic(HapticEvent.maxItemsReached);
+        events.add(HapticEvent.maxItemsReached);
       }
     }
+
+    _controller._hapticCoordinator.triggerSequence(events);
   }
 
   void handleDragUpdate(Offset globalPosition) {
@@ -79,14 +83,18 @@ class DragOperations {
       return;
     }
 
+    final events = <HapticEvent>[];
+
     // Batch haptic feedback for drag selection changes
     if (result.newlySelected.isNotEmpty || result.newlyDeselected.isNotEmpty) {
-      _controller._triggerHaptic(HapticEvent.rangeSelection);
+      events.add(HapticEvent.rangeSelection);
     }
 
     if (result.hitLimit) {
-      _controller._triggerHaptic(HapticEvent.maxItemsReached);
+      events.add(HapticEvent.maxItemsReached);
     }
+
+    _controller._hapticCoordinator.triggerSequence(events);
 
     stateManager.clearIdentifiers();
     for (final index in result.newSelection) {
