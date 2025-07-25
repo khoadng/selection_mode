@@ -68,7 +68,7 @@ class DemoHomePage extends StatelessWidget {
                   _DemoCard(
                     title: 'Mixed Selection List',
                     description:
-                        'Contact list with implicit behavior and constraints',
+                        'Contact list with auto toggle and constraints',
                     icon: Icons.contacts,
                     onTap: () =>
                         _navigateTo(context, const MixedSelectionDemo()),

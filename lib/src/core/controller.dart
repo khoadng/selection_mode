@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:meta/meta.dart';
 import '../options/haptic_feedback.dart';
 import '../options/selection_options.dart';
 import '../managers/auto_scroll_manager.dart';
@@ -32,7 +33,6 @@ class SelectionModeController extends ChangeNotifier {
   late final DragOperations _dragOps;
 
   SelectionOptions _options = const SelectionOptions();
-  SelectionOptions get options => _options;
 
   bool _enabled;
 
@@ -46,75 +46,13 @@ class SelectionModeController extends ChangeNotifier {
 
   final Map<int, Rect? Function()> positionCallbacks = {};
 
+  // --- Public Methods ---
+  SelectionOptions get options => _options;
   bool get isActive => _enabled;
   Set<int> get visibleSelection => _stateManager.visibleSelection;
   Set<int> get selection => _stateManager.selection;
   bool get isDragInProgress => _dragManager.isDragInProgress;
   bool get isAutoScrolling => _autoScrollManager?.isScrolling ?? false;
-
-  void register(SelectionItemInfo info) {
-    _stateManager.registerItem(info.index, info.identifier);
-    _selectabilityManager.setSelectable(info.index, info.isSelectable);
-
-    if (info.positionCallback != null) {
-      positionCallbacks[info.index] = info.positionCallback!;
-    }
-
-    if (!info.isSelectable && _stateManager.isSelected(info.index)) {
-      _stateManager.removeIdentifier(info.identifier);
-      if (_rangeManager.anchor == info.index) {
-        _rangeManager.clearAnchor();
-      }
-      _checkAutoDisable();
-      notifyListeners();
-    }
-  }
-
-  void unregister(int index) {
-    _stateManager.unregisterItem(index);
-    _selectabilityManager.removeItem(index);
-    positionCallbacks.remove(index);
-
-    if (_rangeManager.anchor == index) {
-      _rangeManager.clearAnchor();
-    }
-    _checkAutoDisable();
-  }
-
-  void setAutoScrollManager(AutoScrollManager? manager) {
-    _autoScrollManager?.dispose();
-    _autoScrollManager = manager;
-    if (manager != null) {
-      manager.onScrollUpdate = _dragOps.onAutoScrollUpdate;
-    }
-  }
-
-  void _applyOptions(SelectionOptions options) {
-    _options = options;
-    _hapticCoordinator = HapticCoordinator(options.haptics);
-
-    final maxSelections = options.constraints?.maxSelections;
-
-    if (maxSelections != null && _stateManager.length > maxSelections) {
-      final currentSelection = _stateManager.visibleSelection.toList();
-      final toRemove = currentSelection.skip(maxSelections);
-
-      for (final index in toRemove) {
-        final identifier = _stateManager.getIdentifier(index);
-        _stateManager.removeIdentifier(identifier);
-      }
-      _checkAutoDisable();
-    }
-  }
-
-  void initializeOptions(SelectionOptions options) {
-    _applyOptions(options);
-  }
-
-  void updateOptions(SelectionOptions options) {
-    _applyOptions(options);
-    notifyListeners();
-  }
 
   void enable({List<int>? initialSelected}) {
     _setEnabled(true);
@@ -154,6 +92,75 @@ class SelectionModeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void removeItem(int index) {
+    unregister(index);
+    notifyListeners();
+  }
+
+  void toggleItem(int item) => _selectionOps.toggleItem(item);
+  void selectRange(int from, int to) => _selectionOps.selectRange(from, to);
+  void deselectRange(int from, int to) => _selectionOps.deselectRange(from, to);
+  void toggleRange(int from, int to) => _selectionOps.toggleRange(from, to);
+  void deselectAll() => _selectionOps.deselectAll();
+  void selectAll(List<int> items) => _selectionOps.selectAll(items);
+  void invertSelection(List<int> allItems) =>
+      _selectionOps.invertSelection(allItems);
+
+  bool isSelected(int item) => _stateManager.isSelected(item);
+
+  // --- Internal Methods ---
+  @internal
+  void register(SelectionItemInfo info) {
+    _stateManager.registerItem(info.index, info.identifier);
+    _selectabilityManager.setSelectable(info.index, info.isSelectable);
+
+    if (info.positionCallback != null) {
+      positionCallbacks[info.index] = info.positionCallback!;
+    }
+
+    if (!info.isSelectable && _stateManager.isSelected(info.index)) {
+      _stateManager.removeIdentifier(info.identifier);
+      if (_rangeManager.anchor == info.index) {
+        _rangeManager.clearAnchor();
+      }
+      _checkAutoDisable();
+      notifyListeners();
+    }
+  }
+
+  @internal
+  void unregister(int index) {
+    _stateManager.unregisterItem(index);
+    _selectabilityManager.removeItem(index);
+    positionCallbacks.remove(index);
+
+    if (_rangeManager.anchor == index) {
+      _rangeManager.clearAnchor();
+    }
+    _checkAutoDisable();
+  }
+
+  @internal
+  void setAutoScrollManager(AutoScrollManager? manager) {
+    _autoScrollManager?.dispose();
+    _autoScrollManager = manager;
+    if (manager != null) {
+      manager.onScrollUpdate = _dragOps.onAutoScrollUpdate;
+    }
+  }
+
+  @internal
+  void initializeOptions(SelectionOptions options) {
+    _applyOptions(options);
+  }
+
+  @internal
+  void updateOptions(SelectionOptions options) {
+    _applyOptions(options);
+    notifyListeners();
+  }
+
+  @internal
   void setItemSelectable(int index, bool selectable) {
     _selectabilityManager.setSelectable(index, selectable);
 
@@ -168,69 +175,32 @@ class SelectionModeController extends ChangeNotifier {
     }
   }
 
-  void removeItem(int index) {
-    unregister(index);
-    notifyListeners();
-  }
-
-  void toggleItem(int item) => _selectionOps.toggleItem(item);
-  void selectRange(int from, int to) => _selectionOps.selectRange(from, to);
-  void deselectRange(int from, int to) => _selectionOps.deselectRange(from, to);
-  void toggleRange(int from, int to) => _selectionOps.toggleRange(from, to);
-  void clearRange(int from, int to) => _selectionOps.deselectRange(from, to);
-  void deselectAll() => _selectionOps.deselectAll();
-  void selectAll(List<int> items) => _selectionOps.selectAll(items);
-  void invertSelection(List<int> allItems) =>
-      _selectionOps.invertSelection(allItems);
-
+  @internal
   void startRangeSelection(int index) => _dragOps.startRangeSelection(index);
+  @internal
   void handleDragUpdate(Offset globalPosition) =>
       _dragOps.handleDragUpdate(globalPosition);
+  @internal
   void handleDragOver(int index) => _dragOps.handleDragOver(index);
+  @internal
   void endRangeSelection() => _dragOps.endRangeSelection();
 
-  bool isSelectable(int index) => _selectabilityManager.isSelectable(index);
-  bool isSelected(int item) => _stateManager.isSelected(item);
-  List<int> getSelectedInRange(int from, int to) =>
-      _rangeManager.getSelectedInRange(visibleSelection, from, to);
-  List<int> getSelectableInRange(int from, int to) =>
-      _rangeManager.getSelectableInRange(from, to);
-  int getSelectedCountInRange(int from, int to) =>
-      _rangeManager.getSelectedCountInRange(visibleSelection, from, to);
-  bool hasSelectionInRange(int from, int to) =>
-      _rangeManager.hasSelectionInRange(visibleSelection, from, to);
-  bool isRangeFullySelected(int from, int to) =>
-      _rangeManager.isRangeFullySelected(visibleSelection, from, to);
+  // --- Private Methods ---
+  void _applyOptions(SelectionOptions options) {
+    _options = options;
+    _hapticCoordinator = HapticCoordinator(options.haptics);
 
-  void handleSelection(
-    int index, {
-    bool isShiftPressed = false,
-    bool isRangeMode = false,
-  }) {
-    if (!isSelectable(index)) return;
+    final maxSelections = options.constraints?.maxSelections;
 
-    if (!_enabled && _shouldAutoEnable()) {
-      _setEnabled(true);
-      _hapticCoordinator.trigger(HapticEvent.modeEnabled);
-    }
+    if (maxSelections != null && _stateManager.length > maxSelections) {
+      final currentSelection = _stateManager.visibleSelection.toList();
+      final toRemove = currentSelection.skip(maxSelections);
 
-    if ((isShiftPressed || isRangeMode)) {
-      final anchor = _rangeManager.getShiftSelectionTarget(index);
-      if (anchor != null) {
-        selectRange(anchor, index);
-        return;
+      for (final index in toRemove) {
+        final identifier = _stateManager.getIdentifier(index);
+        _stateManager.removeIdentifier(identifier);
       }
-    }
-
-    toggleItem(index);
-    _rangeManager.setAnchor(index);
-  }
-
-  void setRangeAnchor(int index) {
-    if (!isSelectable(index)) return;
-    _rangeManager.setAnchor(index);
-    if (!isSelected(index)) {
-      toggleItem(index);
+      _checkAutoDisable();
     }
   }
 

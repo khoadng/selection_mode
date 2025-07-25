@@ -70,13 +70,12 @@ class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
       child: Scaffold(
         appBar: MaterialSelectionAppBar(
           child: AppBar(
-            title: const Text('Implicit Selection Demo'),
+            title: const Text('Mixed Selection Demo'),
             actions: [
               IconButton(
                 icon: const Icon(Icons.info_outline),
                 onPressed: () => _showOptionsInfo(context),
               ),
-              // Note: No manual select all button needed with implicit behavior
             ],
           ),
         ),
@@ -160,24 +159,59 @@ class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
   SectionSelectionState _getSectionState(int headerIndex) {
     final (start, end) = _getSectionRange(headerIndex);
 
-    if (_controller.isRangeFullySelected(start, end)) {
-      return SectionSelectionState.all;
-    } else if (_controller.hasSelectionInRange(start, end)) {
-      return SectionSelectionState.partial;
-    } else {
-      return SectionSelectionState.none;
-    }
+    final selectedInRange = _controller
+        .selectedFrom(_items)
+        .withIndices
+        .where((record) => record.$1 >= start && record.$1 <= end)
+        .length;
+
+    final selectableInRange = _items
+        .skip(start)
+        .take(end - start + 1)
+        .where((item) => item.isSelectable)
+        .length;
+
+    return switch (selectedInRange) {
+      0 => SectionSelectionState.none,
+      _ when selectedInRange == selectableInRange => SectionSelectionState.all,
+      _ => SectionSelectionState.partial,
+    };
   }
 
   void _toggleSection(int headerIndex) {
     final (start, end) = _getSectionRange(headerIndex);
 
-    if (_controller.isRangeFullySelected(start, end)) {
-      _controller.deselectRange(start, end);
-      // Note: With implicit behavior, mode will auto-exit if this was the last selection
+    // Check if range is fully selected using query class
+    final selectedInRange = _controller
+        .selectedFrom(_items)
+        .withIndices
+        .where((record) => record.$1 >= start && record.$1 <= end)
+        .toList();
+
+    final selectableInRange = _items
+        .asMap()
+        .entries
+        .where(
+          (entry) =>
+              entry.key >= start &&
+              entry.key <= end &&
+              entry.value.isSelectable,
+        )
+        .map((entry) => entry.key)
+        .toList();
+
+    if (selectedInRange.length == selectableInRange.length) {
+      // Deselect all in range
+      for (final (index, _) in selectedInRange) {
+        _controller.toggleItem(index);
+      }
     } else {
-      _controller.selectRange(start, end);
-      // Note: With implicit behavior, mode will auto-enable if not already enabled
+      // Select all selectable in range
+      for (final index in selectableInRange) {
+        if (!_controller.isSelected(index)) {
+          _controller.toggleItem(index);
+        }
+      }
     }
   }
 
@@ -185,9 +219,6 @@ class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
     final item = _items[index];
 
     if (item.isSelectable) {
-      // With implicit behavior: first tap enables mode and selects item
-      // Subsequent taps toggle selection
-      // When last item is deselected, mode auto-exits
       _controller.toggleItem(index);
     } else if (item is ContactItem) {
       print('Opening contact: ${item.name}');
@@ -243,17 +274,16 @@ class _MixedSelectionDemoState extends State<MixedSelectionDemo> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Implicit Selection Demo'),
+        title: const Text('Mixed Selection Demo'),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('This demo uses implicit selection behavior:'),
+            Text('This demo uses auto toggle selection behavior:'),
             SizedBox(height: 12),
             Text('• Auto-enables on first item selection'),
             Text('• Auto-exits when all items deselected'),
             Text('• Max 5 selections'),
-            Text('• No manual enable/disable buttons needed'),
             SizedBox(height: 12),
             Text(
               'Try selecting items - notice how the mode automatically starts and stops!',
@@ -301,7 +331,7 @@ class _BehaviorIndicator extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Implicit Mode: ${isEnabled ? 'Active' : 'Inactive'}',
+                'Status: ${isEnabled ? 'Active' : 'Inactive'}',
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
                   color: isEnabled ? Colors.green[700] : Colors.grey[700],
