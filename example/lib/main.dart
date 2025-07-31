@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'basic_list_demo.dart';
+import 'file_manager_demo.dart';
 import 'mixed_selection_demo.dart';
 import 'grid_selection_demo.dart';
 
@@ -72,6 +73,16 @@ class DemoHomePage extends StatelessWidget {
                     icon: Icons.contacts,
                     onTap: () =>
                         _navigateTo(context, const MixedSelectionDemo()),
+                  ),
+                  const SizedBox(height: 16),
+                  _DemoCard(
+                    title: 'File Manager',
+                    description: 'File list with keyboard shortcuts',
+                    icon: Icons.folder,
+                    onTap: () => _navigateTo(
+                      context,
+                      const FileManagerDemo(),
+                    ),
                   ),
                 ],
               ),
