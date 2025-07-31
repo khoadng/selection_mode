@@ -1,6 +1,8 @@
 # Selection Mode
 
-![Pub Version](https://img.shields.io/pub/v/selection_mode)
+<a href="https://pub.dev/packages/selection_mode">
+    <img src="https://img.shields.io/pub/v/selection_mode" alt="pub package">
+</a>  
 
 A Flutter package for multi-item selection with drag, range selection.
 
@@ -302,6 +304,29 @@ DragSelectionIgnore(
   child: FloatingActionButton(...), // Won't interfere with drag selection
 )
 ```
+
+## Keyboard Shortcuts
+
+Keyboard shortcuts are optional. Add them by wrapping with `SelectionShortcuts`:
+
+```dart
+SelectionMode(
+  controller: _controller,
+  child: SelectionShortcuts(
+    totalItems: items.length,  // Required for "select all"
+    child: Focus(
+      autofocus: true,
+      child: SelectionCanvas(
+        child: YourWidget(),
+      ),
+    ),
+  ),
+)
+```
+
+### Available Shortcuts
+- **Ctrl+A / Cmd+A** - Select all items
+- **Escape** - Exit selection mode
 
 ## Custom Layout Example
 
