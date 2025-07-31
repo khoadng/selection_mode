@@ -12,6 +12,16 @@ class ExitSelectionModeIntent extends Intent {
   const ExitSelectionModeIntent();
 }
 
+class ToggleSelectionIntent extends Intent {
+  const ToggleSelectionIntent(this.index);
+  final int index;
+}
+
+class ExtendSelectionIntent extends Intent {
+  const ExtendSelectionIntent(this.index);
+  final int index;
+}
+
 class SelectAllAction extends Action<SelectAllIntent> {
   SelectAllAction(this.controller, this.totalItems);
 
@@ -60,6 +70,31 @@ class ExitSelectionModeAction extends Action<ExitSelectionModeIntent> {
   }
 }
 
+class ToggleSelectionAction extends Action<ToggleSelectionIntent> {
+  ToggleSelectionAction(this.controller);
+
+  final SelectionModeController controller;
+
+  @override
+  Object? invoke(ToggleSelectionIntent intent) {
+    controller.toggleItem(intent.index);
+    return null;
+  }
+}
+
+class ExtendSelectionAction extends Action<ExtendSelectionIntent> {
+  ExtendSelectionAction(this.controller);
+
+  final SelectionModeController controller;
+
+  @override
+  Object? invoke(ExtendSelectionIntent intent) {
+    final anchor = controller.getAnchor() ?? 0;
+    controller.selectRange(anchor, intent.index);
+    return null;
+  }
+}
+
 // Configuration for keyboard shortcuts
 class SelectionShortcutPreset {
   const SelectionShortcutPreset._(this.shortcuts);
@@ -104,6 +139,11 @@ class SelectionShortcuts extends StatefulWidget {
   /// Keyboard shortcut configuration.
   final SelectionShortcutPreset? config;
 
+  /// Access SelectionShortcuts from the widget tree (nullable)
+  static SelectionShortcuts? maybeOf(BuildContext context) {
+    return context.findAncestorWidgetOfExactType<SelectionShortcuts>();
+  }
+
   @override
   State<SelectionShortcuts> createState() => _SelectionShortcutsState();
 }
@@ -113,6 +153,8 @@ class _SelectionShortcutsState extends State<SelectionShortcuts> {
     return {
       SelectAllIntent: SelectAllAction(controller, widget.totalItems),
       ExitSelectionModeIntent: ExitSelectionModeAction(controller),
+      ToggleSelectionIntent: ToggleSelectionAction(controller),
+      ExtendSelectionIntent: ExtendSelectionAction(controller),
     };
   }
 

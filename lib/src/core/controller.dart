@@ -109,6 +109,8 @@ class SelectionModeController extends ChangeNotifier {
 
   bool isSelected(int item) => _stateManager.isSelected(item);
 
+  int? getAnchor() => _rangeManager.anchor;
+
   // --- Internal Methods ---
   @internal
   void register(SelectionItemInfo info) {

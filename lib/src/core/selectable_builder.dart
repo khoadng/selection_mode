@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:selection_mode/selection_mode.dart';
 import 'selection_item_info.dart';
 
@@ -78,6 +80,37 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
     ));
   }
 
+  bool _isShiftPressed() {
+    final pressed = HardwareKeyboard.instance.logicalKeysPressed;
+    return pressed.contains(LogicalKeyboardKey.shiftLeft) ||
+        pressed.contains(LogicalKeyboardKey.shiftRight);
+  }
+
+  bool _isCtrlPressed() {
+    final pressed = HardwareKeyboard.instance.logicalKeysPressed;
+    if (defaultTargetPlatform == TargetPlatform.macOS) {
+      return pressed.contains(LogicalKeyboardKey.metaLeft) ||
+          pressed.contains(LogicalKeyboardKey.metaRight);
+    }
+    return pressed.contains(LogicalKeyboardKey.controlLeft) ||
+        pressed.contains(LogicalKeyboardKey.controlRight);
+  }
+
+  void _handleTap() {
+    if (!widget.isSelectable) return;
+
+    final controller = SelectionMode.of(context);
+    final hasShortcuts = SelectionShortcuts.maybeOf(context) != null;
+
+    if (hasShortcuts && _isCtrlPressed()) {
+      Actions.invoke(context, ToggleSelectionIntent(widget.index));
+    } else if (hasShortcuts && _isShiftPressed()) {
+      Actions.invoke(context, ExtendSelectionIntent(widget.index));
+    } else {
+      controller.toggleItem(widget.index);
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -127,6 +160,13 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
         // In manual mode when disabled, don't consume long press
         if (options.behavior == SelectionBehavior.manual &&
             !controller.isActive) {
+          final hasShortcuts = SelectionShortcuts.maybeOf(context) != null;
+          if (hasShortcuts) {
+            return GestureDetector(
+              onTap: _handleTap,
+              child: child,
+            );
+          }
           return child;
         }
 
@@ -135,6 +175,13 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
         if (dragSelection == null) {
           return RawGestureDetector(
             gestures: <Type, GestureRecognizerFactory>{
+              TapGestureRecognizer:
+                  GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
+                () => TapGestureRecognizer(),
+                (TapGestureRecognizer instance) {
+                  instance.onTap = _handleTap;
+                },
+              ),
               LongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<
                   LongPressGestureRecognizer>(
                 () => LongPressGestureRecognizer(),
@@ -165,7 +212,10 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
               childWhenDragging: child,
               delay: dragSelection.delay ?? kLongPressTimeout,
               axis: dragSelection.axis,
-              child: child,
+              child: GestureDetector(
+                onTap: _handleTap,
+                child: child,
+              ),
             );
           },
         );
