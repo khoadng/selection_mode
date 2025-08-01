@@ -111,66 +111,37 @@ class _FileManagerDemoState extends State<FileManagerDemo> {
         behavior: SelectionBehavior.autoEnable,
       ),
       child: Scaffold(
-        appBar: MaterialSelectionAppBar(
-          actions: _buildSelectionActions(),
-          child: AppBar(
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('File Manager'),
-                Text(
-                  '${_files.length} items',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-            ),
-            actions: [
-              IconButton(
-                icon: Icon(_isGridView ? Icons.view_list : Icons.view_module),
-                tooltip: _isGridView ? 'List View' : 'Grid View',
-                onPressed: () => setState(() => _isGridView = !_isGridView),
+        appBar: AppBar(
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('File Manager'),
+              Text(
+                '${_files.length} items',
+                style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
           ),
-        ),
-        body: Column(
-          children: [
-            _buildShortcutsHelp(),
-            Expanded(
-              child: SelectionShortcuts(
-                totalItems: _files.length,
-                child: Focus(
-                  autofocus: true,
-                  child: SelectionCanvas(
-                    child: _isGridView ? _buildGridView() : _buildListView(),
-                  ),
-                ),
-              ),
+          actions: [
+            IconButton(
+              icon: Icon(_isGridView ? Icons.view_list : Icons.view_module),
+              tooltip: _isGridView ? 'List View' : 'Grid View',
+              onPressed: () => setState(() => _isGridView = !_isGridView),
             ),
           ],
         ),
-        bottomSheet: _buildActionSheet(),
-      ),
-    );
-  }
 
-  Widget _buildShortcutsHelp() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Row(
-        children: [
-          const Icon(Icons.keyboard, size: 16),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Ctrl+A: Select All • Ctrl+Click: Toggle • Shift+Click: Extend • Esc: Clear',
-              style: Theme.of(context).textTheme.bodySmall,
-              overflow: TextOverflow.ellipsis,
+        body: SelectionShortcuts(
+          totalItems: _files.length,
+          child: Focus(
+            autofocus: true,
+            child: SelectionCanvas(
+              child: _isGridView ? _buildGridView() : _buildListView(),
             ),
           ),
-        ],
+        ),
+        bottomSheet: _buildActionSheet(),
       ),
     );
   }
@@ -263,89 +234,6 @@ class _FileManagerDemoState extends State<FileManagerDemo> {
         );
       },
     );
-  }
-
-  List<Widget> _buildSelectionActions() {
-    return [
-      IconButton(
-        icon: const Icon(Icons.copy),
-        tooltip: 'Copy Selected',
-        onPressed: _copySelected,
-      ),
-      IconButton(
-        icon: const Icon(Icons.content_cut),
-        tooltip: 'Cut Selected',
-        onPressed: _cutSelected,
-      ),
-      IconButton(
-        icon: const Icon(Icons.delete),
-        tooltip: 'Delete Selected',
-        onPressed: _deleteSelected,
-      ),
-      PopupMenuButton<String>(
-        icon: const Icon(Icons.more_vert),
-        onSelected: _handleMoreAction,
-        itemBuilder: (context) => [
-          const PopupMenuItem(value: 'rename', child: Text('Rename')),
-          const PopupMenuItem(value: 'properties', child: Text('Properties')),
-          const PopupMenuItem(value: 'share', child: Text('Share')),
-        ],
-      ),
-    ];
-  }
-
-  void _copySelected() {
-    final selected = _controller.selectedFrom(_files).toList();
-    debugPrint(
-      'Copying ${selected.length} items: ${selected.map((f) => f.name).join(', ')}',
-    );
-    _controller.disable();
-  }
-
-  void _cutSelected() {
-    final selected = _controller.selectedFrom(_files).toList();
-    debugPrint(
-      'Cutting ${selected.length} items: ${selected.map((f) => f.name).join(', ')}',
-    );
-    _controller.disable();
-  }
-
-  void _deleteSelected() {
-    final selected = _controller.selectedFrom(_files).toList();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Files'),
-        content: Text('Delete ${selected.length} items permanently?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _performDelete(selected);
-            },
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _performDelete(List<FileItem> items) {
-    setState(() {
-      for (final item in items) {
-        _files.remove(item);
-      }
-    });
-    _controller.disable();
-  }
-
-  void _handleMoreAction(String action) {
-    final selected = _controller.selectedFrom(_files).toList();
-    debugPrint('$action on ${selected.length} items');
   }
 }
 
