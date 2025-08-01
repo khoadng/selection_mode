@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:selection_mode/selection_mode.dart';
 import 'selection_item_info.dart';
 
@@ -78,6 +80,69 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
     ));
   }
 
+  bool _isShiftPressed() {
+    final pressed = HardwareKeyboard.instance.logicalKeysPressed;
+    return pressed.contains(LogicalKeyboardKey.shiftLeft) ||
+        pressed.contains(LogicalKeyboardKey.shiftRight);
+  }
+
+  bool _isCtrlPressed() {
+    final pressed = HardwareKeyboard.instance.logicalKeysPressed;
+    if (defaultTargetPlatform == TargetPlatform.macOS) {
+      return pressed.contains(LogicalKeyboardKey.metaLeft) ||
+          pressed.contains(LogicalKeyboardKey.metaRight);
+    }
+    return pressed.contains(LogicalKeyboardKey.controlLeft) ||
+        pressed.contains(LogicalKeyboardKey.controlRight);
+  }
+
+  void _handleTap() {
+    if (!widget.isSelectable) return;
+
+    final controller = SelectionMode.of(context);
+    final options = controller.options;
+    final hasShortcuts = SelectionShortcuts.maybeOf(context) != null;
+
+    // Handle keyboard shortcuts first
+    if (hasShortcuts && _isCtrlPressed()) {
+      Actions.invoke(context, ToggleSelectionIntent(widget.index));
+      return;
+    } else if (hasShortcuts && _isShiftPressed()) {
+      Actions.invoke(context, ExtendSelectionIntent(widget.index));
+      return;
+    }
+
+    final behavior = options.tapBehavior ?? TapBehavior.toggleWhenSelecting;
+
+    if (behavior.when == null) return; // disabled
+
+    final shouldHandle = switch (behavior.when!) {
+      TapCondition.active => controller.isActive,
+      TapCondition.inactive => !controller.isActive,
+      TapCondition.both => true,
+    };
+
+    if (!shouldHandle) return;
+
+    switch (behavior.action!) {
+      case TapAction.toggle:
+        controller.toggleItem(widget.index);
+      case TapAction.replace:
+        controller.replaceSelection(widget.index);
+    }
+  }
+
+  bool _shouldHandleTap(TapBehavior? tapBehavior, bool isActive) {
+    final behavior = tapBehavior ?? TapBehavior.toggleWhenSelecting;
+    if (behavior.when == null) return false;
+
+    return switch (behavior.when!) {
+      TapCondition.active => isActive,
+      TapCondition.inactive => !isActive,
+      TapCondition.both => true,
+    };
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -123,28 +188,49 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
         }
 
         final options = controller.options;
+        final shouldHandleTap =
+            _shouldHandleTap(options.tapBehavior, controller.isActive);
 
         // In manual mode when disabled, don't consume long press
         if (options.behavior == SelectionBehavior.manual &&
             !controller.isActive) {
+          final hasShortcuts = SelectionShortcuts.maybeOf(context) != null;
+          if (hasShortcuts && shouldHandleTap) {
+            return GestureDetector(
+              onTap: _handleTap,
+              child: child,
+            );
+          }
           return child;
         }
 
         final dragSelection = options.dragSelection;
 
         if (dragSelection == null) {
+          final gestures = <Type, GestureRecognizerFactory>{
+            LongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<
+                LongPressGestureRecognizer>(
+              () => LongPressGestureRecognizer(),
+              (LongPressGestureRecognizer instance) {
+                instance.onLongPress = () {
+                  controller.enable(initialSelected: [widget.index]);
+                };
+              },
+            ),
+          };
+
+          if (shouldHandleTap) {
+            gestures[TapGestureRecognizer] =
+                GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
+              () => TapGestureRecognizer(),
+              (TapGestureRecognizer instance) {
+                instance.onTap = _handleTap;
+              },
+            );
+          }
+
           return RawGestureDetector(
-            gestures: <Type, GestureRecognizerFactory>{
-              LongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<
-                  LongPressGestureRecognizer>(
-                () => LongPressGestureRecognizer(),
-                (LongPressGestureRecognizer instance) {
-                  instance.onLongPress = () {
-                    controller.enable(initialSelected: [widget.index]);
-                  };
-                },
-              ),
-            },
+            gestures: gestures,
             child: child,
           );
         }
@@ -155,6 +241,15 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
             return true;
           },
           builder: (context, candidateData, rejectedData) {
+            Widget dragChild = child;
+
+            if (shouldHandleTap) {
+              dragChild = GestureDetector(
+                onTap: _handleTap,
+                child: child,
+              );
+            }
+
             return LongPressDraggable(
               data: widget.index,
               onDragStarted: () {
@@ -165,7 +260,7 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
               childWhenDragging: child,
               delay: dragSelection.delay ?? kLongPressTimeout,
               axis: dragSelection.axis,
-              child: child,
+              child: dragChild,
             );
           },
         );

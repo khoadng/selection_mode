@@ -99,6 +99,7 @@ class SelectionModeController extends ChangeNotifier {
   }
 
   void toggleItem(int item) => _selectionOps.toggleItem(item);
+  void replaceSelection(int item) => _selectionOps.replaceSelection(item);
   void selectRange(int from, int to) => _selectionOps.selectRange(from, to);
   void deselectRange(int from, int to) => _selectionOps.deselectRange(from, to);
   void toggleRange(int from, int to) => _selectionOps.toggleRange(from, to);
@@ -108,6 +109,8 @@ class SelectionModeController extends ChangeNotifier {
       _selectionOps.invertSelection(allItems);
 
   bool isSelected(int item) => _stateManager.isSelected(item);
+
+  int? getAnchor() => _rangeManager.anchor;
 
   // --- Internal Methods ---
   @internal
