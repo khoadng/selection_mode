@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/selection_consumer.dart';
+import 'controller.dart';
 import 'selection_mode.dart';
 
 /// A widget that provides gesture handling for selection mode interactions.
@@ -50,10 +51,34 @@ class SelectionCanvas extends StatefulWidget {
 }
 
 class _SelectionCanvasState extends State<SelectionCanvas> {
+  final GlobalKey _canvasKey = GlobalKey();
+  SelectionModeController? _controller;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _controller = SelectionMode.maybeOf(context);
+
+    if (_controller == null) {
+      throw FlutterError(
+        'SelectionCanvas must be used within a SelectionMode widget.',
+      );
+    }
+
+    _controller!.setCanvasKey(_canvasKey);
+  }
+
+  @override
+  void dispose() {
+    _controller?.setCanvasKey(null);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SelectionConsumer(
       builder: (context, controller, _) => Listener(
+        key: _canvasKey,
         onPointerMove: controller.isActive ? _handlePointerMove : null,
         onPointerUp: controller.isActive ? _handlePointerUp : null,
         onPointerCancel: controller.isActive ? _handlePointerCancel : null,

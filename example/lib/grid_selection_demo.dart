@@ -12,7 +12,7 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
   final _controller = SelectionModeController();
   final _scrollController = ScrollController();
   final _allPhotos = List.generate(
-    1000,
+    100000,
     (index) => Photo(
       id: index + 100,
       title: 'Photo ${index + 1}',
@@ -177,7 +177,7 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
       scrollDirection: _isHorizontalScroll ? Axis.horizontal : Axis.vertical,
       padding: const EdgeInsets.all(8),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
+        crossAxisCount: 5,
         crossAxisSpacing: 4,
         mainAxisSpacing: 4,
       ),

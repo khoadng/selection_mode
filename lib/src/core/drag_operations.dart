@@ -15,10 +15,7 @@ class DragOperations {
 
   void startRangeSelection(int index) {
     if (!selectabilityManager.isSelectable(index)) return;
-
-    if (_controller._shouldBlockManualSelection()) {
-      return;
-    }
+    if (_controller._shouldBlockManualSelection()) return;
 
     final events = <HapticEvent>[];
 
@@ -122,11 +119,19 @@ class DragOperations {
   }
 
   void _checkItemUnderPointer(Offset position) {
-    for (final entry in _controller.positionCallbacks.entries) {
-      final rect = entry.value();
-      if (rect != null && rect.contains(position)) {
-        handleDragOver(entry.key);
-        return;
+    final renderBox = _controller.getCanvasRenderBox();
+    if (renderBox == null) return;
+
+    final localPosition = renderBox.globalToLocal(position);
+    final result = BoxHitTestResult();
+
+    if (renderBox.hitTest(result, position: localPosition)) {
+      for (final entry in result.path) {
+        final target = entry.target;
+        if (target is RenderSelectable) {
+          handleDragOver(target.index);
+          return;
+        }
       }
     }
   }

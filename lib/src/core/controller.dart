@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import '../options/haptic_feedback.dart';
 import '../options/selection_options.dart';
@@ -10,6 +10,7 @@ import '../managers/drag_selection_manager.dart';
 import '../managers/selection_state_manager.dart';
 import '../managers/haptic_coordinator.dart';
 import 'selection_item_info.dart';
+import 'selectable_render_object.dart';
 
 part 'selection_operations.dart';
 part 'drag_operations.dart';
@@ -35,6 +36,7 @@ class SelectionModeController extends ChangeNotifier {
   SelectionOptions _options = const SelectionOptions();
 
   bool _enabled;
+  GlobalKey? _canvasKey;
 
   late final SelectionStateManager _stateManager;
   final SelectabilityManager _selectabilityManager = SelectabilityManager();
@@ -44,10 +46,7 @@ class SelectionModeController extends ChangeNotifier {
   AutoScrollManager? _autoScrollManager;
   late HapticCoordinator _hapticCoordinator;
 
-  @internal
-  final Map<int, Rect? Function()> positionCallbacks = {};
-
-  // --- Public Methods ---
+  // Public API
   SelectionOptions get options => _options;
   bool get isActive => _enabled;
   Set<int> get visibleSelection => _stateManager.visibleSelection;
@@ -75,8 +74,6 @@ class SelectionModeController extends ChangeNotifier {
     _rangeManager.clearAnchor();
     _dragManager.endDrag();
     _autoScrollManager?.stopDragAutoScroll();
-    positionCallbacks.clear();
-
     notifyListeners();
   }
 
@@ -112,15 +109,11 @@ class SelectionModeController extends ChangeNotifier {
 
   int? getAnchor() => _rangeManager.anchor;
 
-  // --- Internal Methods ---
+  // Internal API
   @internal
   void register(SelectionItemInfo info) {
     _stateManager.registerItem(info.index, info.identifier);
     _selectabilityManager.setSelectable(info.index, info.isSelectable);
-
-    if (info.positionCallback != null) {
-      positionCallbacks[info.index] = info.positionCallback!;
-    }
 
     if (!info.isSelectable && _stateManager.isSelected(info.index)) {
       _stateManager.removeIdentifier(info.identifier);
@@ -136,12 +129,22 @@ class SelectionModeController extends ChangeNotifier {
   void unregister(int index) {
     _stateManager.unregisterItem(index);
     _selectabilityManager.removeItem(index);
-    positionCallbacks.remove(index);
-
     if (_rangeManager.anchor == index) {
       _rangeManager.clearAnchor();
     }
     _checkAutoDisable();
+  }
+
+  @internal
+  void setCanvasKey(GlobalKey? key) {
+    _canvasKey = key;
+  }
+
+  @internal
+  RenderBox? getCanvasRenderBox() {
+    final key = _canvasKey;
+    if (key?.currentContext == null) return null;
+    return key!.currentContext!.findRenderObject() as RenderBox?;
   }
 
   @internal
@@ -189,7 +192,7 @@ class SelectionModeController extends ChangeNotifier {
   @internal
   void endRangeSelection() => _dragOps.endRangeSelection();
 
-  // --- Private Methods ---
+  // Private methods
   void _applyOptions(SelectionOptions options) {
     _options = options;
     _hapticCoordinator = HapticCoordinator(options.haptics);
@@ -255,7 +258,6 @@ class SelectionModeController extends ChangeNotifier {
   void _clearAllMappings() {
     _stateManager.clear();
     _selectabilityManager.clear();
-    positionCallbacks.clear();
   }
 
   @override
@@ -263,6 +265,8 @@ class SelectionModeController extends ChangeNotifier {
     _autoScrollManager?.dispose();
     _rangeManager.dispose();
     _dragManager.reset();
+    _hapticCoordinator.clearHistory();
+    _canvasKey = null;
     _clearAllMappings();
     super.dispose();
   }
