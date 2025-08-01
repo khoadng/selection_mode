@@ -101,10 +101,6 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
 
     final controller = SelectionMode.of(context);
     final options = controller.options;
-
-    // Skip tap handling if disabled
-    if (options.tapBehavior == TapBehavior.none) return;
-
     final hasShortcuts = SelectionShortcuts.maybeOf(context) != null;
 
     // Handle keyboard shortcuts first
@@ -116,14 +112,35 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
       return;
     }
 
-    switch (options.tapBehavior) {
-      case TapBehavior.toggle:
+    final behavior = options.tapBehavior ?? TapBehavior.toggleWhenSelecting;
+
+    if (behavior.when == null) return; // disabled
+
+    final shouldHandle = switch (behavior.when!) {
+      TapCondition.active => controller.isActive,
+      TapCondition.inactive => !controller.isActive,
+      TapCondition.both => true,
+    };
+
+    if (!shouldHandle) return;
+
+    switch (behavior.action!) {
+      case TapAction.toggle:
         controller.toggleItem(widget.index);
-      case TapBehavior.replace:
+      case TapAction.replace:
         controller.replaceSelection(widget.index);
-      case TapBehavior.none:
-        break; // Already handled above
     }
+  }
+
+  bool _shouldHandleTap(TapBehavior? tapBehavior, bool isActive) {
+    final behavior = tapBehavior ?? TapBehavior.toggleWhenSelecting;
+    if (behavior.when == null) return false;
+
+    return switch (behavior.when!) {
+      TapCondition.active => isActive,
+      TapCondition.inactive => !isActive,
+      TapCondition.both => true,
+    };
   }
 
   @override
@@ -171,7 +188,8 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
         }
 
         final options = controller.options;
-        final shouldHandleTap = options.tapBehavior != TapBehavior.none;
+        final shouldHandleTap =
+            _shouldHandleTap(options.tapBehavior, controller.isActive);
 
         // In manual mode when disabled, don't consume long press
         if (options.behavior == SelectionBehavior.manual &&

@@ -16,16 +16,69 @@ enum SelectionBehavior {
   autoEnable,
 }
 
-/// Tap behavior for selectable items
-enum TapBehavior {
-  /// Add/remove item from selection (default)
+/// Conditions when tap behavior should be active
+enum TapCondition {
+  /// Only when selection mode is active
+  active,
+
+  /// Only when selection mode is inactive
+  inactive,
+
+  /// Regardless of selection mode state
+  both,
+}
+
+/// Actions to perform on tap
+enum TapAction {
+  /// Add/remove item from selection
   toggle,
 
   /// Replace entire selection with tapped item
   replace,
+}
 
-  /// Disable tap handling
-  none,
+/// Tap behavior configuration for selectable items
+class TapBehavior {
+  const TapBehavior({
+    required this.when,
+    required this.action,
+  });
+
+  /// The condition when tap behavior should be active
+  final TapCondition? when;
+
+  /// The action to perform on tap
+  final TapAction? action;
+
+  /// Toggle items only when selection mode is active (default)
+  static const toggleWhenSelecting = TapBehavior(
+    when: TapCondition.active,
+    action: TapAction.toggle,
+  );
+
+  /// Replace selection regardless of mode state
+  static const alwaysReplace = TapBehavior(
+    when: TapCondition.both,
+    action: TapAction.replace,
+  );
+
+  /// Toggle items regardless of mode state
+  static const alwaysToggle = TapBehavior(
+    when: TapCondition.both,
+    action: TapAction.toggle,
+  );
+
+  /// Replace selection only when inactive
+  static const replaceWhenInactive = TapBehavior(
+    when: TapCondition.inactive,
+    action: TapAction.replace,
+  );
+
+  /// Disable tap handling completely
+  static const disabled = TapBehavior(
+    when: null,
+    action: null,
+  );
 }
 
 /// Configuration for drag selection behavior
@@ -47,7 +100,7 @@ class SelectionOptions {
   const SelectionOptions({
     this.haptics = HapticFeedbackResolver.modeOnly,
     this.behavior = SelectionBehavior.autoEnable,
-    this.tapBehavior = TapBehavior.toggle,
+    this.tapBehavior,
     this.dragSelection,
     this.autoScroll = const SelectionAutoScrollOptions(),
     this.constraints,
@@ -59,8 +112,8 @@ class SelectionOptions {
   /// Selection mode behavior pattern
   final SelectionBehavior behavior;
 
-  /// Tap behavior for selectable items
-  final TapBehavior tapBehavior;
+  /// Tap behavior for selectable items. If null, defaults to toggleWhenSelecting.
+  final TapBehavior? tapBehavior;
 
   /// Selection constraints. If null, no constraints are applied.
   final SelectionConstraints? constraints;

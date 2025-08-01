@@ -101,7 +101,7 @@ class _FileManagerDemoState extends State<FileManagerDemo> {
       scrollController: _scrollController,
       options: const SelectionOptions(
         behavior: SelectionBehavior.autoEnable,
-        tapBehavior: TapBehavior.replace,
+        tapBehavior: TapBehavior.alwaysReplace,
       ),
       child: Scaffold(
         appBar: AppBar(
