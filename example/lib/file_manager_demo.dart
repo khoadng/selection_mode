@@ -9,7 +9,6 @@ class FileManagerDemo extends StatefulWidget {
 }
 
 class _FileManagerDemoState extends State<FileManagerDemo> {
-  final _controller = SelectionModeController();
   final _scrollController = ScrollController();
 
   bool _isGridView = false;
@@ -91,13 +90,7 @@ class _FileManagerDemoState extends State<FileManagerDemo> {
   ];
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   void dispose() {
-    _controller.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -105,7 +98,6 @@ class _FileManagerDemoState extends State<FileManagerDemo> {
   @override
   Widget build(BuildContext context) {
     return SelectionMode(
-      controller: _controller,
       scrollController: _scrollController,
       options: const SelectionOptions(
         behavior: SelectionBehavior.autoEnable,
