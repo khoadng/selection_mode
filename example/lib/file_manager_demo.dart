@@ -109,6 +109,7 @@ class _FileManagerDemoState extends State<FileManagerDemo> {
       scrollController: _scrollController,
       options: const SelectionOptions(
         behavior: SelectionBehavior.autoEnable,
+        tapBehavior: TapBehavior.replace,
       ),
       child: Scaffold(
         appBar: AppBar(
@@ -267,10 +268,6 @@ class _FileListTile extends StatelessWidget {
         leading: _buildIcon(context),
         title: Text(file.name),
         subtitle: Text(_buildSubtitle()),
-        trailing: isSelected
-            ? Icon(Icons.check_circle, color: theme.colorScheme.primary)
-            : null,
-        // Remove onTap - let SelectableBuilder handle it
       ),
     );
   }
@@ -392,23 +389,6 @@ class _FileGridTile extends StatelessWidget {
               ),
             ],
           ),
-          if (isSelected)
-            Positioned(
-              top: 8,
-              right: 8,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.check,
-                  size: 16,
-                  color: theme.colorScheme.onPrimary,
-                ),
-              ),
-            ),
         ],
       ),
     );

@@ -56,6 +56,34 @@ class SelectionOperations {
     _controller._notify();
   }
 
+  void replaceSelection(int item) {
+    if (!selectabilityManager.isSelectable(item)) return;
+
+    if (_controller._shouldBlockManualSelection()) {
+      return;
+    }
+
+    final events = <HapticEvent>[];
+
+    if (!_controller._enabled && _controller._shouldAutoEnable()) {
+      _controller._setEnabled(true);
+      events.add(HapticEvent.modeEnabled);
+    }
+
+    // Clear current selection
+    stateManager.clearIdentifiers();
+    rangeManager.clearAnchor();
+
+    // Add the new item
+    final identifier = stateManager.getIdentifier(item);
+    stateManager.addIdentifier(identifier);
+    rangeManager.setAnchor(item);
+
+    events.add(HapticEvent.itemSelected);
+    _controller._hapticCoordinator.triggerSequence(events);
+    _controller._notify();
+  }
+
   void selectRange(int from, int to) {
     if (_controller._shouldBlockManualSelection()) return;
 

@@ -100,14 +100,29 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
     if (!widget.isSelectable) return;
 
     final controller = SelectionMode.of(context);
+    final options = controller.options;
+
+    // Skip tap handling if disabled
+    if (options.tapBehavior == TapBehavior.none) return;
+
     final hasShortcuts = SelectionShortcuts.maybeOf(context) != null;
 
+    // Handle keyboard shortcuts first
     if (hasShortcuts && _isCtrlPressed()) {
       Actions.invoke(context, ToggleSelectionIntent(widget.index));
+      return;
     } else if (hasShortcuts && _isShiftPressed()) {
       Actions.invoke(context, ExtendSelectionIntent(widget.index));
-    } else {
-      controller.toggleItem(widget.index);
+      return;
+    }
+
+    switch (options.tapBehavior) {
+      case TapBehavior.toggle:
+        controller.toggleItem(widget.index);
+      case TapBehavior.replace:
+        controller.replaceSelection(widget.index);
+      case TapBehavior.none:
+        break; // Already handled above
     }
   }
 
@@ -156,12 +171,13 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
         }
 
         final options = controller.options;
+        final shouldHandleTap = options.tapBehavior != TapBehavior.none;
 
         // In manual mode when disabled, don't consume long press
         if (options.behavior == SelectionBehavior.manual &&
             !controller.isActive) {
           final hasShortcuts = SelectionShortcuts.maybeOf(context) != null;
-          if (hasShortcuts) {
+          if (hasShortcuts && shouldHandleTap) {
             return GestureDetector(
               onTap: _handleTap,
               child: child,
@@ -173,25 +189,30 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
         final dragSelection = options.dragSelection;
 
         if (dragSelection == null) {
+          final gestures = <Type, GestureRecognizerFactory>{
+            LongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<
+                LongPressGestureRecognizer>(
+              () => LongPressGestureRecognizer(),
+              (LongPressGestureRecognizer instance) {
+                instance.onLongPress = () {
+                  controller.enable(initialSelected: [widget.index]);
+                };
+              },
+            ),
+          };
+
+          if (shouldHandleTap) {
+            gestures[TapGestureRecognizer] =
+                GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
+              () => TapGestureRecognizer(),
+              (TapGestureRecognizer instance) {
+                instance.onTap = _handleTap;
+              },
+            );
+          }
+
           return RawGestureDetector(
-            gestures: <Type, GestureRecognizerFactory>{
-              TapGestureRecognizer:
-                  GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
-                () => TapGestureRecognizer(),
-                (TapGestureRecognizer instance) {
-                  instance.onTap = _handleTap;
-                },
-              ),
-              LongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<
-                  LongPressGestureRecognizer>(
-                () => LongPressGestureRecognizer(),
-                (LongPressGestureRecognizer instance) {
-                  instance.onLongPress = () {
-                    controller.enable(initialSelected: [widget.index]);
-                  };
-                },
-              ),
-            },
+            gestures: gestures,
             child: child,
           );
         }
@@ -202,6 +223,15 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
             return true;
           },
           builder: (context, candidateData, rejectedData) {
+            Widget dragChild = child;
+
+            if (shouldHandleTap) {
+              dragChild = GestureDetector(
+                onTap: _handleTap,
+                child: child,
+              );
+            }
+
             return LongPressDraggable(
               data: widget.index,
               onDragStarted: () {
@@ -212,10 +242,7 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
               childWhenDragging: child,
               delay: dragSelection.delay ?? kLongPressTimeout,
               axis: dragSelection.axis,
-              child: GestureDetector(
-                onTap: _handleTap,
-                child: child,
-              ),
+              child: dragChild,
             );
           },
         );

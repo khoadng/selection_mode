@@ -16,6 +16,18 @@ enum SelectionBehavior {
   autoEnable,
 }
 
+/// Tap behavior for selectable items
+enum TapBehavior {
+  /// Add/remove item from selection (default)
+  toggle,
+
+  /// Replace entire selection with tapped item
+  replace,
+
+  /// Disable tap handling
+  none,
+}
+
 /// Configuration for drag selection behavior
 class DragSelectionOptions {
   const DragSelectionOptions({
@@ -35,6 +47,7 @@ class SelectionOptions {
   const SelectionOptions({
     this.haptics = HapticFeedbackResolver.modeOnly,
     this.behavior = SelectionBehavior.autoEnable,
+    this.tapBehavior = TapBehavior.toggle,
     this.dragSelection,
     this.autoScroll = const SelectionAutoScrollOptions(),
     this.constraints,
@@ -45,6 +58,9 @@ class SelectionOptions {
 
   /// Selection mode behavior pattern
   final SelectionBehavior behavior;
+
+  /// Tap behavior for selectable items
+  final TapBehavior tapBehavior;
 
   /// Selection constraints. If null, no constraints are applied.
   final SelectionConstraints? constraints;
@@ -58,6 +74,7 @@ class SelectionOptions {
   SelectionOptions copyWith({
     HapticResolver? haptics,
     SelectionBehavior? behavior,
+    TapBehavior? tapBehavior,
     SelectionConstraints? constraints,
     SelectionAutoScrollOptions? autoScroll,
     DragSelectionOptions? dragSelection,
@@ -65,6 +82,7 @@ class SelectionOptions {
     return SelectionOptions(
       haptics: haptics ?? this.haptics,
       behavior: behavior ?? this.behavior,
+      tapBehavior: tapBehavior ?? this.tapBehavior,
       constraints: constraints ?? this.constraints,
       autoScroll: autoScroll ?? this.autoScroll,
       dragSelection: dragSelection ?? this.dragSelection,
