@@ -58,9 +58,7 @@ class _SelectionCanvasState extends State<SelectionCanvas> {
         onPointerUp: controller.isActive ? _handlePointerUp : null,
         onPointerCancel: controller.isActive ? _handlePointerCancel : null,
         child: GestureDetector(
-          onTap: controller.isActive
-              ? (widget.onBackgroundTap ?? controller.disable)
-              : null,
+          onTap: controller.isActive ? widget.onBackgroundTap : null,
           behavior: widget.hitTestBehavior,
           child: widget.child,
         ),

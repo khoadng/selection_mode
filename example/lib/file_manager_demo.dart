@@ -129,8 +129,15 @@ class _FileManagerDemoState extends State<FileManagerDemo> {
           totalItems: _files.length,
           child: Focus(
             autofocus: true,
-            child: SelectionCanvas(
-              child: _isGridView ? _buildGridView() : _buildListView(),
+            child: SelectionConsumer(
+              builder: (_, controller, _) => SelectionCanvas(
+                onBackgroundTap: () {
+                  if (controller.isActive) {
+                    controller.disable();
+                  }
+                },
+                child: _isGridView ? _buildGridView() : _buildListView(),
+              ),
             ),
           ),
         ),
