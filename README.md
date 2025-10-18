@@ -6,8 +6,6 @@
 
 A Flutter package for multi-item selection with drag, range selection.
 
-> **⚠️ Alpha Stage**: This package is in alpha. Expect breaking changes in version updates.
-
 ## Features
 
 - **Drag selection** - Touch and drag between items for range selection

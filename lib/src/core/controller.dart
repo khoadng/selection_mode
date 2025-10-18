@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:meta/meta.dart';
 import '../options/haptic_feedback.dart';
 import '../options/selection_options.dart';
 import '../managers/auto_scroll_manager.dart';
