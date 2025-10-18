@@ -1,3 +1,8 @@
+## 0.0.6
+
+* Support shift and ctrl selection
+* Disable background tap by default
+
 ## 0.0.5
 
 * Drag selection is disabled by default.
