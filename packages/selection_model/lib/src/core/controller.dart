@@ -94,7 +94,7 @@ class SelectionModeController {
   }
 
   void removeItem(int index) {
-    unregister(index);
+    unregister(index, removeSelection: true);
     notifyListeners();
   }
 
@@ -107,6 +107,17 @@ class SelectionModeController {
   void selectAll(List<int> items) => _selectionOps.selectAll(items);
   void invertSelection(List<int> allItems) =>
       _selectionOps.invertSelection(allItems);
+  void retainSelectionIdentifiers(Iterable<Object> identifiers) {
+    final changed = _stateManager.retainSelectedIdentifiers(identifiers);
+    if (!changed) return;
+
+    final anchor = _rangeManager.anchor;
+    if (anchor != null && !_stateManager.isSelected(anchor)) {
+      _rangeManager.clearAnchor();
+    }
+    _checkAutoDisable();
+    notifyListeners();
+  }
 
   bool isSelected(int item) => _stateManager.isSelected(item);
 
@@ -126,14 +137,27 @@ class SelectionModeController {
     }
   }
 
-  void unregister(int index) {
-    _stateManager.unregisterItem(index);
+  bool unregister(
+    int index, {
+    bool removeSelection = false,
+    Object? identifier,
+  }) {
+    final didUnregister = _stateManager.unregisterItem(
+      index,
+      removeSelection: removeSelection,
+      expectedIdentifier: identifier,
+    );
+    if (!didUnregister) {
+      return false;
+    }
+
     _selectabilityManager.removeItem(index);
 
     if (_rangeManager.anchor == index) {
       _rangeManager.clearAnchor();
     }
     _checkAutoDisable();
+    return true;
   }
 
   void initializeOptions(SelectionOptions options) {

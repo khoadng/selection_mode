@@ -53,5 +53,81 @@ void main() {
 
       controller.dispose();
     });
+
+    test('unregister preserves selection while removeItem clears selection',
+        () {
+      final controller = SelectionModeController();
+      controller.registerTestItems(3);
+      controller.enable();
+
+      controller.toggleItem(1);
+      expect(controller.isSelected(1), isTrue);
+
+      controller.unregister(1);
+      expect(controller.isSelected(1), isTrue);
+      expect(controller.selection, contains(1));
+
+      controller.register(const SelectionItemInfo(
+        index: 1,
+        identifier: 1,
+        isSelectable: true,
+      ));
+      expect(controller.isSelected(1), isTrue);
+
+      controller.removeItem(1);
+      expect(controller.isSelected(1), isFalse);
+      expect(controller.selection, isNot(contains(1)));
+
+      controller.dispose();
+    });
+
+    test('integer stable identifiers do not collide with row indices', () {
+      final controller = SelectionModeController();
+      controller.register(const SelectionItemInfo(
+        index: 1,
+        identifier: 101,
+        isSelectable: true,
+      ));
+      controller.enable();
+
+      controller.toggleItem(1);
+      expect(controller.isSelected(1), isTrue);
+
+      controller.unregister(1);
+      expect(controller.isSelected(1), isTrue);
+      expect(controller.isSelected(101), isFalse);
+
+      controller.dispose();
+    });
+
+    test('retainSelectionIdentifiers prunes filtered out items', () {
+      final controller = SelectionModeController();
+      controller.register(const SelectionItemInfo(
+        index: 0,
+        identifier: 100,
+        isSelectable: true,
+      ));
+      controller.register(const SelectionItemInfo(
+        index: 1,
+        identifier: 101,
+        isSelectable: true,
+      ));
+      controller.register(const SelectionItemInfo(
+        index: 2,
+        identifier: 102,
+        isSelectable: true,
+      ));
+      controller.enable();
+
+      controller.selectRange(0, 2);
+      controller.retainSelectionIdentifiers([101, 102]);
+
+      expect(controller.selection.length, 2);
+      expect(controller.isSelected(0), isFalse);
+      expect(controller.isSelected(1), isTrue);
+      expect(controller.isSelected(2), isTrue);
+
+      controller.dispose();
+    });
   });
 }

@@ -23,6 +23,7 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
 
   bool _showHidden = false;
   bool _isHorizontalScroll = false;
+  bool _marqueeSelection = true;
   int _currentNavIndex = 0;
 
   List<Photo> get _visiblePhotos =>
@@ -41,15 +42,24 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
     });
   }
 
+  void _setShowHidden(bool value) {
+    setState(() => _showHidden = value);
+    if (!value) {
+      _controller.retainSelectionIdentifiers(
+        _allPhotos.where((photo) => !photo.isHidden).map((photo) => photo.id),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final visiblePhotos = _visiblePhotos;
 
     return SelectionMode(
       scrollController: _scrollController,
-      options: const SelectionOptions(
+      options: SelectionOptions(
         haptics: HapticFeedbackResolver.all,
-        dragSelection: DragSelectionOptions(),
+        dragSelection: _marqueeSelection ? const DragSelectionOptions() : null,
       ),
       controller: _controller,
       child: Scaffold(
@@ -63,7 +73,7 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
             IconButton(
               icon: Icon(_showHidden ? Icons.visibility_off : Icons.visibility),
               tooltip: _showHidden ? 'Hide filtered items' : 'Show all items',
-              onPressed: () => setState(() => _showHidden = !_showHidden),
+              onPressed: () => _setShowHidden(!_showHidden),
             ),
             IconButton(
               icon: const Icon(Icons.shuffle),
@@ -104,6 +114,20 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
               ],
             ),
             actions: [
+              IconButton(
+                icon: Icon(
+                  Icons.select_all,
+                  color: _marqueeSelection
+                      ? Theme.of(context).colorScheme.primary
+                      : null,
+                ),
+                tooltip: _marqueeSelection
+                    ? 'Disable Marquee Selection'
+                    : 'Enable Marquee Selection',
+                onPressed: () => setState(
+                  () => _marqueeSelection = !_marqueeSelection,
+                ),
+              ),
               IconButton(
                 icon: Icon(
                   _isHorizontalScroll ? Icons.view_column : Icons.view_agenda,
@@ -172,23 +196,38 @@ class _GridSelectionDemoState extends State<GridSelectionDemo> {
   Widget _buildGrid() {
     final visiblePhotos = _visiblePhotos;
 
-    return GridView.builder(
-      controller: _scrollController,
-      scrollDirection: _isHorizontalScroll ? Axis.horizontal : Axis.vertical,
-      padding: const EdgeInsets.all(8),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 4,
-        mainAxisSpacing: 4,
-      ),
-      itemCount: visiblePhotos.length,
-      itemBuilder: (context, index) => SelectableItem(
-        key: ValueKey(visiblePhotos[index].id),
-        index: index,
-        onTap: () => _handlePhotoTap(index),
-        itemBuilder: (context, index) =>
-            _PhotoTile(photo: visiblePhotos[index]),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = _isHorizontalScroll
+            ? 3
+            : constraints.maxWidth > 1000
+            ? 8
+            : constraints.maxWidth > 700
+            ? 6
+            : 4;
+
+        return GridView.builder(
+          controller: _scrollController,
+          scrollDirection: _isHorizontalScroll
+              ? Axis.horizontal
+              : Axis.vertical,
+          padding: const EdgeInsets.all(36),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: 18,
+            mainAxisSpacing: 18,
+            childAspectRatio: 1,
+          ),
+          itemCount: visiblePhotos.length,
+          itemBuilder: (context, index) => SelectableItem(
+            key: ValueKey(visiblePhotos[index].id),
+            index: index,
+            onTap: () => _handlePhotoTap(index),
+            itemBuilder: (context, index) =>
+                _PhotoTile(photo: visiblePhotos[index]),
+          ),
+        );
+      },
     );
   }
 
@@ -324,6 +363,7 @@ class _PhotoTile extends StatelessWidget {
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
+                    fontSize: 12,
                   ),
                   textAlign: TextAlign.center,
                 ),

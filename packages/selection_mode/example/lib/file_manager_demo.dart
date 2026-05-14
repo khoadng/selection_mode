@@ -12,6 +12,7 @@ class _FileManagerDemoState extends State<FileManagerDemo> {
   final _scrollController = ScrollController();
 
   bool _isGridView = false;
+  bool _marqueeSelection = true;
   FileItem? _lastFocusedItem;
 
   final List<FileItem> _files = [
@@ -99,9 +100,10 @@ class _FileManagerDemoState extends State<FileManagerDemo> {
   Widget build(BuildContext context) {
     return SelectionMode(
       scrollController: _scrollController,
-      options: const SelectionOptions(
+      options: SelectionOptions(
         behavior: SelectionBehavior.autoEnable,
         tapBehavior: TapBehavior.alwaysReplace,
+        dragSelection: _marqueeSelection ? const DragSelectionOptions() : null,
       ),
       child: Scaffold(
         appBar: AppBar(
@@ -117,6 +119,20 @@ class _FileManagerDemoState extends State<FileManagerDemo> {
             ],
           ),
           actions: [
+            IconButton(
+              icon: Icon(
+                Icons.select_all,
+                color: _marqueeSelection
+                    ? Theme.of(context).colorScheme.primary
+                    : null,
+              ),
+              tooltip: _marqueeSelection
+                  ? 'Disable Marquee Selection'
+                  : 'Enable Marquee Selection',
+              onPressed: () => setState(
+                () => _marqueeSelection = !_marqueeSelection,
+              ),
+            ),
             IconButton(
               icon: Icon(_isGridView ? Icons.view_list : Icons.view_module),
               tooltip: _isGridView ? 'List View' : 'Grid View',
@@ -165,15 +181,19 @@ class _FileManagerDemoState extends State<FileManagerDemo> {
   Widget _buildGridView() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth > 600 ? 4 : 2;
+        final crossAxisCount = constraints.maxWidth > 900
+            ? 7
+            : constraints.maxWidth > 600
+            ? 5
+            : 3;
         return GridView.builder(
           controller: _scrollController,
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(40),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 0.85,
+            crossAxisSpacing: 24,
+            mainAxisSpacing: 28,
+            childAspectRatio: 1.05,
           ),
           itemCount: _files.length,
           itemBuilder: (context, index) => SelectableBuilder(
@@ -353,7 +373,7 @@ class _FileGridTile extends StatelessWidget {
                 child: Center(
                   child: Icon(
                     file.type.icon,
-                    size: 48,
+                    size: 34,
                     color: theme.colorScheme.primary,
                   ),
                 ),
@@ -361,12 +381,12 @@ class _FileGridTile extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: Padding(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(6),
                   child: Column(
                     children: [
                       Text(
                         file.name,
-                        style: theme.textTheme.bodyMedium?.copyWith(
+                        style: theme.textTheme.bodySmall?.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
                         maxLines: 2,
@@ -377,7 +397,7 @@ class _FileGridTile extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           _formatFileSize(file.size!),
-                          style: theme.textTheme.bodySmall?.copyWith(
+                          style: theme.textTheme.labelSmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),

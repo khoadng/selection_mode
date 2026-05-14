@@ -49,6 +49,21 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
     final renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null || !renderBox.hasSize) return null;
 
+    final canvasRenderBox = _getCanvasRenderBox();
+    if (canvasRenderBox == null) return null;
+
+    final globalOffset = renderBox.localToGlobal(Offset.zero);
+    final localOffset = canvasRenderBox.globalToLocal(globalOffset);
+
+    return Rect.fromLTWH(
+      localOffset.dx,
+      localOffset.dy,
+      renderBox.size.width,
+      renderBox.size.height,
+    );
+  }
+
+  RenderBox? _getCanvasRenderBox() {
     RenderBox? canvasRenderBox;
     context.visitAncestorElements((element) {
       if (element.widget is SelectionCanvas) {
@@ -58,17 +73,7 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
       return true;
     });
 
-    if (canvasRenderBox == null) return null;
-
-    final globalOffset = renderBox.localToGlobal(Offset.zero);
-    final localOffset = canvasRenderBox!.globalToLocal(globalOffset);
-
-    return Rect.fromLTWH(
-      localOffset.dx,
-      localOffset.dy,
-      renderBox.size.width,
-      renderBox.size.height,
-    );
+    return canvasRenderBox;
   }
 
   void _registerWithController(SelectionModeController controller) {
@@ -96,22 +101,56 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
         pressed.contains(LogicalKeyboardKey.controlRight);
   }
 
-  void _handleTap() {
+  void _handlePrimaryTap() {
     if (!widget.isSelectable) return;
 
     final controller = SelectionMode.of(context);
-    final options = controller.options;
-    final hasShortcuts = SelectionShortcuts.maybeOf(context) != null;
 
-    // Handle keyboard shortcuts first
-    if (hasShortcuts && _isCtrlPressed()) {
-      Actions.invoke(context, ToggleSelectionIntent(widget.index));
-      return;
-    } else if (hasShortcuts && _isShiftPressed()) {
-      Actions.invoke(context, ExtendSelectionIntent(widget.index));
+    if (_isCtrlPressed()) {
+      controller.toggleItem(widget.index);
       return;
     }
 
+    if (_isShiftPressed()) {
+      _extendSelection(controller);
+      return;
+    }
+
+    _handleConfiguredTap(controller);
+  }
+
+  void _handleSecondaryTap() {
+    if (!widget.isSelectable) return;
+
+    final controller = SelectionMode.of(context);
+
+    if (controller.isSelected(widget.index)) return;
+
+    if (_isCtrlPressed()) {
+      controller.toggleItem(widget.index);
+      return;
+    }
+
+    if (_isShiftPressed()) {
+      _extendSelection(controller);
+      return;
+    }
+
+    controller.replaceSelection(widget.index);
+  }
+
+  void _extendSelection(SelectionModeController controller) {
+    final anchor = controller.getAnchor();
+    if (anchor == null) {
+      controller.replaceSelection(widget.index);
+      return;
+    }
+
+    controller.selectRange(anchor, widget.index);
+  }
+
+  void _handleConfiguredTap(SelectionModeController controller) {
+    final options = controller.options;
     final behavior = options.tapBehavior ?? TapBehavior.toggleWhenSelecting;
 
     if (behavior.when == null) return; // disabled
@@ -166,11 +205,17 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
     if (oldIdentifier != newIdentifier ||
         oldWidget.index != widget.index ||
         oldWidget.isSelectable != widget.isSelectable) {
-      _controller?.unregister(oldWidget.index);
+      _controller?.unregister(oldWidget.index, identifier: oldIdentifier);
       if (_controller != null) {
         _registerWithController(_controller!);
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _controller?.unregister(widget.index, identifier: _getIdentifier());
+    super.dispose();
   }
 
   @override
@@ -197,7 +242,8 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
           final hasShortcuts = SelectionShortcuts.maybeOf(context) != null;
           if (hasShortcuts && shouldHandleTap) {
             return GestureDetector(
-              onTap: _handleTap,
+              onTap: _handlePrimaryTap,
+              onSecondaryTap: _handleSecondaryTap,
               child: child,
             );
           }
@@ -224,7 +270,16 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
                 GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
               () => TapGestureRecognizer(),
               (TapGestureRecognizer instance) {
-                instance.onTap = _handleTap;
+                instance.onTap = _handlePrimaryTap;
+                instance.onSecondaryTap = _handleSecondaryTap;
+              },
+            );
+          } else {
+            gestures[TapGestureRecognizer] =
+                GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
+              () => TapGestureRecognizer(),
+              (TapGestureRecognizer instance) {
+                instance.onSecondaryTap = _handleSecondaryTap;
               },
             );
           }
@@ -245,7 +300,13 @@ class _SelectableBuilderState extends State<SelectableBuilder> {
 
             if (shouldHandleTap) {
               dragChild = GestureDetector(
-                onTap: _handleTap,
+                onTap: _handlePrimaryTap,
+                onSecondaryTap: _handleSecondaryTap,
+                child: child,
+              );
+            } else {
+              dragChild = GestureDetector(
+                onSecondaryTap: _handleSecondaryTap,
                 child: child,
               );
             }

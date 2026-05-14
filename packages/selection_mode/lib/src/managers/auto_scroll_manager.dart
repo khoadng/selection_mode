@@ -23,12 +23,19 @@ class AutoScrollManager {
   bool get isScrolling =>
       _ticker?.isActive == true && _direction != null && _speed > 0;
   Offset? get currentDragPosition => _currentDragPosition;
+  Axis? get axis =>
+      scrollController.hasClients ? scrollController.position.axis : null;
+  double get scrollOffset =>
+      scrollController.hasClients ? scrollController.offset : 0.0;
 
   Size? getViewportSize() {
+    return _getViewportRenderBox()?.size;
+  }
+
+  RenderBox? _getViewportRenderBox() {
     if (!scrollController.hasClients) return null;
     final context = scrollController.position.context.storageContext;
-    final renderBox = context.findRenderObject() as RenderBox?;
-    return renderBox?.size;
+    return context.findRenderObject() as RenderBox?;
   }
 
   /// Start auto-scroll session for drag operation
@@ -47,12 +54,15 @@ class AutoScrollManager {
   void handleDragUpdate(Offset globalPosition, Size viewportSize) {
     if (!scrollController.hasClients) return;
     _currentDragPosition = globalPosition;
+    final viewportPosition =
+        _getViewportRenderBox()?.globalToLocal(globalPosition) ??
+            globalPosition;
 
     final axis = scrollController.position.axis;
     final direction =
-        _calculateScrollDirection(globalPosition, viewportSize, axis);
+        _calculateScrollDirection(viewportPosition, viewportSize, axis);
     final speed = _calculateScrollSpeed(
-      globalPosition,
+      viewportPosition,
       viewportSize,
       direction,
       axis,
